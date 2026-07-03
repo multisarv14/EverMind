@@ -1,0 +1,12 @@
+/workspaces/evermind/evermind/services/abstractions/bin/Debug/net10.0/EverMind.Abstractions.deps.json
+/workspaces/evermind/evermind/services/abstractions/bin/Debug/net10.0/EverMind.Abstractions.dll
+/workspaces/evermind/evermind/services/abstractions/bin/Debug/net10.0/EverMind.Abstractions.pdb
+/workspaces/evermind/evermind/services/abstractions/obj/Debug/net10.0/EverMind.Abstractions.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/evermind/evermind/services/abstractions/obj/Debug/net10.0/EverMind.Abstractions.AssemblyInfoInputs.cache
+/workspaces/evermind/evermind/services/abstractions/obj/Debug/net10.0/EverMind.Abstractions.AssemblyInfo.cs
+/workspaces/evermind/evermind/services/abstractions/obj/Debug/net10.0/EverMind.Abstractions.csproj.CoreCompileInputs.cache
+/workspaces/evermind/evermind/services/abstractions/obj/Debug/net10.0/EverMind.Abstractions.sourcelink.json
+/workspaces/evermind/evermind/services/abstractions/obj/Debug/net10.0/EverMind.Abstractions.dll
+/workspaces/evermind/evermind/services/abstractions/obj/Debug/net10.0/refint/EverMind.Abstractions.dll
+/workspaces/evermind/evermind/services/abstractions/obj/Debug/net10.0/EverMind.Abstractions.pdb
+/workspaces/evermind/evermind/services/abstractions/obj/Debug/net10.0/ref/EverMind.Abstractions.dll

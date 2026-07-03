@@ -1,0 +1,12 @@
+/workspaces/evermind/evermind/packages/core/sharedkernel/bin/Debug/net10.0/EverMind.SharedKernel.deps.json
+/workspaces/evermind/evermind/packages/core/sharedkernel/bin/Debug/net10.0/EverMind.SharedKernel.dll
+/workspaces/evermind/evermind/packages/core/sharedkernel/bin/Debug/net10.0/EverMind.SharedKernel.pdb
+/workspaces/evermind/evermind/packages/core/sharedkernel/obj/Debug/net10.0/EverMind.SharedKernel.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/evermind/evermind/packages/core/sharedkernel/obj/Debug/net10.0/EverMind.SharedKernel.AssemblyInfoInputs.cache
+/workspaces/evermind/evermind/packages/core/sharedkernel/obj/Debug/net10.0/EverMind.SharedKernel.AssemblyInfo.cs
+/workspaces/evermind/evermind/packages/core/sharedkernel/obj/Debug/net10.0/EverMind.SharedKernel.csproj.CoreCompileInputs.cache
+/workspaces/evermind/evermind/packages/core/sharedkernel/obj/Debug/net10.0/EverMind.SharedKernel.sourcelink.json
+/workspaces/evermind/evermind/packages/core/sharedkernel/obj/Debug/net10.0/EverMind.SharedKernel.dll
+/workspaces/evermind/evermind/packages/core/sharedkernel/obj/Debug/net10.0/refint/EverMind.SharedKernel.dll
+/workspaces/evermind/evermind/packages/core/sharedkernel/obj/Debug/net10.0/EverMind.SharedKernel.pdb
+/workspaces/evermind/evermind/packages/core/sharedkernel/obj/Debug/net10.0/ref/EverMind.SharedKernel.dll

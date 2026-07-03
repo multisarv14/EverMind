@@ -1,0 +1,12 @@
+/workspaces/evermind/evermind/services/memory-engine/bin/Debug/net10.0/EverMind.MemoryEngine.deps.json
+/workspaces/evermind/evermind/services/memory-engine/bin/Debug/net10.0/EverMind.MemoryEngine.dll
+/workspaces/evermind/evermind/services/memory-engine/bin/Debug/net10.0/EverMind.MemoryEngine.pdb
+/workspaces/evermind/evermind/services/memory-engine/obj/Debug/net10.0/EverMind.MemoryEngine.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/evermind/evermind/services/memory-engine/obj/Debug/net10.0/EverMind.MemoryEngine.AssemblyInfoInputs.cache
+/workspaces/evermind/evermind/services/memory-engine/obj/Debug/net10.0/EverMind.MemoryEngine.AssemblyInfo.cs
+/workspaces/evermind/evermind/services/memory-engine/obj/Debug/net10.0/EverMind.MemoryEngine.csproj.CoreCompileInputs.cache
+/workspaces/evermind/evermind/services/memory-engine/obj/Debug/net10.0/EverMind.MemoryEngine.sourcelink.json
+/workspaces/evermind/evermind/services/memory-engine/obj/Debug/net10.0/EverMind.MemoryEngine.dll
+/workspaces/evermind/evermind/services/memory-engine/obj/Debug/net10.0/refint/EverMind.MemoryEngine.dll
+/workspaces/evermind/evermind/services/memory-engine/obj/Debug/net10.0/EverMind.MemoryEngine.pdb
+/workspaces/evermind/evermind/services/memory-engine/obj/Debug/net10.0/ref/EverMind.MemoryEngine.dll

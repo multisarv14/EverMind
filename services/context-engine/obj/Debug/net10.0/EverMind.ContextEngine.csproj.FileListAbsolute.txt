@@ -1,0 +1,12 @@
+/workspaces/evermind/evermind/services/context-engine/bin/Debug/net10.0/EverMind.ContextEngine.deps.json
+/workspaces/evermind/evermind/services/context-engine/bin/Debug/net10.0/EverMind.ContextEngine.dll
+/workspaces/evermind/evermind/services/context-engine/bin/Debug/net10.0/EverMind.ContextEngine.pdb
+/workspaces/evermind/evermind/services/context-engine/obj/Debug/net10.0/EverMind.ContextEngine.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/evermind/evermind/services/context-engine/obj/Debug/net10.0/EverMind.ContextEngine.AssemblyInfoInputs.cache
+/workspaces/evermind/evermind/services/context-engine/obj/Debug/net10.0/EverMind.ContextEngine.AssemblyInfo.cs
+/workspaces/evermind/evermind/services/context-engine/obj/Debug/net10.0/EverMind.ContextEngine.csproj.CoreCompileInputs.cache
+/workspaces/evermind/evermind/services/context-engine/obj/Debug/net10.0/EverMind.ContextEngine.sourcelink.json
+/workspaces/evermind/evermind/services/context-engine/obj/Debug/net10.0/EverMind.ContextEngine.dll
+/workspaces/evermind/evermind/services/context-engine/obj/Debug/net10.0/refint/EverMind.ContextEngine.dll
+/workspaces/evermind/evermind/services/context-engine/obj/Debug/net10.0/EverMind.ContextEngine.pdb
+/workspaces/evermind/evermind/services/context-engine/obj/Debug/net10.0/ref/EverMind.ContextEngine.dll

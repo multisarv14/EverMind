@@ -1,0 +1,12 @@
+/workspaces/evermind/evermind/services/decision-engine/bin/Debug/net10.0/EverMind.DecisionEngine.deps.json
+/workspaces/evermind/evermind/services/decision-engine/bin/Debug/net10.0/EverMind.DecisionEngine.dll
+/workspaces/evermind/evermind/services/decision-engine/bin/Debug/net10.0/EverMind.DecisionEngine.pdb
+/workspaces/evermind/evermind/services/decision-engine/obj/Debug/net10.0/EverMind.DecisionEngine.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/evermind/evermind/services/decision-engine/obj/Debug/net10.0/EverMind.DecisionEngine.AssemblyInfoInputs.cache
+/workspaces/evermind/evermind/services/decision-engine/obj/Debug/net10.0/EverMind.DecisionEngine.AssemblyInfo.cs
+/workspaces/evermind/evermind/services/decision-engine/obj/Debug/net10.0/EverMind.DecisionEngine.csproj.CoreCompileInputs.cache
+/workspaces/evermind/evermind/services/decision-engine/obj/Debug/net10.0/EverMind.DecisionEngine.sourcelink.json
+/workspaces/evermind/evermind/services/decision-engine/obj/Debug/net10.0/EverMind.DecisionEngine.dll
+/workspaces/evermind/evermind/services/decision-engine/obj/Debug/net10.0/refint/EverMind.DecisionEngine.dll
+/workspaces/evermind/evermind/services/decision-engine/obj/Debug/net10.0/EverMind.DecisionEngine.pdb
+/workspaces/evermind/evermind/services/decision-engine/obj/Debug/net10.0/ref/EverMind.DecisionEngine.dll

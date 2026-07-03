@@ -1,0 +1,12 @@
+/workspaces/evermind/evermind/services/ai-gateway/bin/Debug/net10.0/EverMind.AIGateway.deps.json
+/workspaces/evermind/evermind/services/ai-gateway/bin/Debug/net10.0/EverMind.AIGateway.dll
+/workspaces/evermind/evermind/services/ai-gateway/bin/Debug/net10.0/EverMind.AIGateway.pdb
+/workspaces/evermind/evermind/services/ai-gateway/obj/Debug/net10.0/EverMind.AIGateway.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/evermind/evermind/services/ai-gateway/obj/Debug/net10.0/EverMind.AIGateway.AssemblyInfoInputs.cache
+/workspaces/evermind/evermind/services/ai-gateway/obj/Debug/net10.0/EverMind.AIGateway.AssemblyInfo.cs
+/workspaces/evermind/evermind/services/ai-gateway/obj/Debug/net10.0/EverMind.AIGateway.csproj.CoreCompileInputs.cache
+/workspaces/evermind/evermind/services/ai-gateway/obj/Debug/net10.0/EverMind.AIGateway.sourcelink.json
+/workspaces/evermind/evermind/services/ai-gateway/obj/Debug/net10.0/EverMind.AIGateway.dll
+/workspaces/evermind/evermind/services/ai-gateway/obj/Debug/net10.0/refint/EverMind.AIGateway.dll
+/workspaces/evermind/evermind/services/ai-gateway/obj/Debug/net10.0/EverMind.AIGateway.pdb
+/workspaces/evermind/evermind/services/ai-gateway/obj/Debug/net10.0/ref/EverMind.AIGateway.dll

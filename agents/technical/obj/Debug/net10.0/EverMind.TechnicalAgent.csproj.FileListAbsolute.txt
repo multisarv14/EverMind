@@ -1,0 +1,12 @@
+/workspaces/evermind/evermind/agents/technical/bin/Debug/net10.0/EverMind.TechnicalAgent.deps.json
+/workspaces/evermind/evermind/agents/technical/bin/Debug/net10.0/EverMind.TechnicalAgent.dll
+/workspaces/evermind/evermind/agents/technical/bin/Debug/net10.0/EverMind.TechnicalAgent.pdb
+/workspaces/evermind/evermind/agents/technical/obj/Debug/net10.0/EverMind.TechnicalAgent.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/evermind/evermind/agents/technical/obj/Debug/net10.0/EverMind.TechnicalAgent.AssemblyInfoInputs.cache
+/workspaces/evermind/evermind/agents/technical/obj/Debug/net10.0/EverMind.TechnicalAgent.AssemblyInfo.cs
+/workspaces/evermind/evermind/agents/technical/obj/Debug/net10.0/EverMind.TechnicalAgent.csproj.CoreCompileInputs.cache
+/workspaces/evermind/evermind/agents/technical/obj/Debug/net10.0/EverMind.TechnicalAgent.sourcelink.json
+/workspaces/evermind/evermind/agents/technical/obj/Debug/net10.0/EverMind.TechnicalAgent.dll
+/workspaces/evermind/evermind/agents/technical/obj/Debug/net10.0/refint/EverMind.TechnicalAgent.dll
+/workspaces/evermind/evermind/agents/technical/obj/Debug/net10.0/EverMind.TechnicalAgent.pdb
+/workspaces/evermind/evermind/agents/technical/obj/Debug/net10.0/ref/EverMind.TechnicalAgent.dll

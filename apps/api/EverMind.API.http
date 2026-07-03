@@ -1,0 +1,6 @@
+@EverMind.API_HostAddress = http://localhost:5049
+
+GET {{EverMind.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

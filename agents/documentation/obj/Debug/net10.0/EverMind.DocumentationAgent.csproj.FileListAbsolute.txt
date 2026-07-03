@@ -1,0 +1,12 @@
+/workspaces/evermind/evermind/agents/documentation/bin/Debug/net10.0/EverMind.DocumentationAgent.deps.json
+/workspaces/evermind/evermind/agents/documentation/bin/Debug/net10.0/EverMind.DocumentationAgent.dll
+/workspaces/evermind/evermind/agents/documentation/bin/Debug/net10.0/EverMind.DocumentationAgent.pdb
+/workspaces/evermind/evermind/agents/documentation/obj/Debug/net10.0/EverMind.DocumentationAgent.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/evermind/evermind/agents/documentation/obj/Debug/net10.0/EverMind.DocumentationAgent.AssemblyInfoInputs.cache
+/workspaces/evermind/evermind/agents/documentation/obj/Debug/net10.0/EverMind.DocumentationAgent.AssemblyInfo.cs
+/workspaces/evermind/evermind/agents/documentation/obj/Debug/net10.0/EverMind.DocumentationAgent.csproj.CoreCompileInputs.cache
+/workspaces/evermind/evermind/agents/documentation/obj/Debug/net10.0/EverMind.DocumentationAgent.sourcelink.json
+/workspaces/evermind/evermind/agents/documentation/obj/Debug/net10.0/EverMind.DocumentationAgent.dll
+/workspaces/evermind/evermind/agents/documentation/obj/Debug/net10.0/refint/EverMind.DocumentationAgent.dll
+/workspaces/evermind/evermind/agents/documentation/obj/Debug/net10.0/EverMind.DocumentationAgent.pdb
+/workspaces/evermind/evermind/agents/documentation/obj/Debug/net10.0/ref/EverMind.DocumentationAgent.dll

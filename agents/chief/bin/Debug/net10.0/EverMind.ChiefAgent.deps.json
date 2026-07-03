@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "EverMind.ChiefAgent/1.0.0": {
+        "runtime": {
+          "EverMind.ChiefAgent.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "EverMind.ChiefAgent/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

@@ -1,0 +1,76 @@
+<Solution>
+  <Folder Name="/agents/" />
+  <Folder Name="/agents/business/">
+    <Project Path="agents/business/EverMind.BusinessAgent.csproj" />
+  </Folder>
+  <Folder Name="/agents/chief/">
+    <Project Path="agents/chief/EverMind.ChiefAgent.csproj" />
+  </Folder>
+  <Folder Name="/agents/documentation/">
+    <Project Path="agents/documentation/EverMind.DocumentationAgent.csproj" />
+  </Folder>
+  <Folder Name="/agents/research/">
+    <Project Path="agents/research/EverMind.ResearchAgent.csproj" />
+  </Folder>
+  <Folder Name="/agents/technical/">
+    <Project Path="agents/technical/EverMind.TechnicalAgent.csproj" />
+  </Folder>
+  <Folder Name="/agents/testing/">
+    <Project Path="agents/testing/EverMind.TestingAgent.csproj" />
+  </Folder>
+  <Folder Name="/agents/understanding/">
+    <Project Path="agents/understanding/EverMind.UnderstandingAgent.csproj" />
+  </Folder>
+  <Folder Name="/apps/" />
+  <Folder Name="/apps/api/">
+    <Project Path="apps/api/EverMind.API.csproj" />
+  </Folder>
+  <Folder Name="/packages/" />
+  <Folder Name="/packages/core/" />
+  <Folder Name="/packages/core/application/">
+    <Project Path="packages/core/application/EverMind.Application.csproj" />
+  </Folder>
+  <Folder Name="/packages/core/domain/">
+    <Project Path="packages/core/domain/EverMind.Domain.csproj" />
+  </Folder>
+  <Folder Name="/packages/core/infrastructure/">
+    <Project Path="packages/core/infrastructure/EverMind.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/packages/core/sharedkernel/">
+    <Project Path="packages/core/sharedkernel/EverMind.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/services/" />
+  <Folder Name="/services/abstractions/">
+    <Project Path="services/abstractions/EverMind.Abstractions.csproj" />
+  </Folder>
+  <Folder Name="/services/ai-gateway/">
+    <Project Path="services/ai-gateway/EverMind.AIGateway.csproj" />
+  </Folder>
+  <Folder Name="/services/context-engine/">
+    <Project Path="services/context-engine/EverMind.ContextEngine.csproj" />
+  </Folder>
+  <Folder Name="/services/decision-engine/">
+    <Project Path="services/decision-engine/EverMind.DecisionEngine.csproj" />
+  </Folder>
+  <Folder Name="/services/execution-engine/">
+    <Project Path="services/execution-engine/EverMind.ExecutionEngine.csproj" />
+  </Folder>
+  <Folder Name="/services/knowledge-engine/">
+    <Project Path="services/knowledge-engine/EverMind.KnowledgeEngine.csproj" />
+  </Folder>
+  <Folder Name="/services/learning-engine/">
+    <Project Path="services/learning-engine/EverMind.LearningEngine.csproj" />
+  </Folder>
+  <Folder Name="/services/memory-engine/">
+    <Project Path="services/memory-engine/EverMind.MemoryEngine.csproj" />
+  </Folder>
+  <Folder Name="/services/orchestrator/">
+    <Project Path="services/orchestrator/EverMind.Orchestrator.csproj" />
+  </Folder>
+  <Folder Name="/services/planning-engine/">
+    <Project Path="services/planning-engine/EverMind.PlanningEngine.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/EverMind.Tests/EverMind.Tests.csproj" />
+  </Folder>
+</Solution>

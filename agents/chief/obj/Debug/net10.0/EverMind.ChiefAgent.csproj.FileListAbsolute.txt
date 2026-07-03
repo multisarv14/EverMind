@@ -1,0 +1,12 @@
+/workspaces/evermind/evermind/agents/chief/bin/Debug/net10.0/EverMind.ChiefAgent.deps.json
+/workspaces/evermind/evermind/agents/chief/bin/Debug/net10.0/EverMind.ChiefAgent.dll
+/workspaces/evermind/evermind/agents/chief/bin/Debug/net10.0/EverMind.ChiefAgent.pdb
+/workspaces/evermind/evermind/agents/chief/obj/Debug/net10.0/EverMind.ChiefAgent.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/evermind/evermind/agents/chief/obj/Debug/net10.0/EverMind.ChiefAgent.AssemblyInfoInputs.cache
+/workspaces/evermind/evermind/agents/chief/obj/Debug/net10.0/EverMind.ChiefAgent.AssemblyInfo.cs
+/workspaces/evermind/evermind/agents/chief/obj/Debug/net10.0/EverMind.ChiefAgent.csproj.CoreCompileInputs.cache
+/workspaces/evermind/evermind/agents/chief/obj/Debug/net10.0/EverMind.ChiefAgent.sourcelink.json
+/workspaces/evermind/evermind/agents/chief/obj/Debug/net10.0/EverMind.ChiefAgent.dll
+/workspaces/evermind/evermind/agents/chief/obj/Debug/net10.0/refint/EverMind.ChiefAgent.dll
+/workspaces/evermind/evermind/agents/chief/obj/Debug/net10.0/EverMind.ChiefAgent.pdb
+/workspaces/evermind/evermind/agents/chief/obj/Debug/net10.0/ref/EverMind.ChiefAgent.dll
