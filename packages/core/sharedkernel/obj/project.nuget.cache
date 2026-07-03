@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "PnoQ5L+Z+IU=",
+  "dgSpecHash": "HbZCBdJdDKE=",
   "success": true,
-  "projectFilePath": "/workspaces/evermind/evermind/packages/core/sharedkernel/EverMind.SharedKernel.csproj",
+  "projectFilePath": "/workspaces/evermind/packages/core/sharedkernel/EverMind.SharedKernel.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

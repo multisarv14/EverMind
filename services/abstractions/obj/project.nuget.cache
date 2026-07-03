@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "u8KYTrwAxqo=",
+  "dgSpecHash": "yEH4Bt8pz08=",
   "success": true,
-  "projectFilePath": "/workspaces/evermind/evermind/services/abstractions/EverMind.Abstractions.csproj",
+  "projectFilePath": "/workspaces/evermind/services/abstractions/EverMind.Abstractions.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

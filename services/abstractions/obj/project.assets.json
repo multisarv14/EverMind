@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/services/abstractions/EverMind.Abstractions.csproj",
+      "projectUniqueName": "/workspaces/evermind/services/abstractions/EverMind.Abstractions.csproj",
       "projectName": "EverMind.Abstractions",
-      "projectPath": "/workspaces/evermind/evermind/services/abstractions/EverMind.Abstractions.csproj",
+      "projectPath": "/workspaces/evermind/services/abstractions/EverMind.Abstractions.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/services/abstractions/obj/",
+      "outputPath": "/workspaces/evermind/services/abstractions/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"

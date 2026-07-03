@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/packages/core/sharedkernel/EverMind.SharedKernel.csproj",
+      "projectUniqueName": "/workspaces/evermind/packages/core/sharedkernel/EverMind.SharedKernel.csproj",
       "projectName": "EverMind.SharedKernel",
-      "projectPath": "/workspaces/evermind/evermind/packages/core/sharedkernel/EverMind.SharedKernel.csproj",
+      "projectPath": "/workspaces/evermind/packages/core/sharedkernel/EverMind.SharedKernel.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/packages/core/sharedkernel/obj/",
+      "outputPath": "/workspaces/evermind/packages/core/sharedkernel/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"

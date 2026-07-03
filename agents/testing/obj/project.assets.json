@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/agents/testing/EverMind.TestingAgent.csproj",
+      "projectUniqueName": "/workspaces/evermind/agents/testing/EverMind.TestingAgent.csproj",
       "projectName": "EverMind.TestingAgent",
-      "projectPath": "/workspaces/evermind/evermind/agents/testing/EverMind.TestingAgent.csproj",
+      "projectPath": "/workspaces/evermind/agents/testing/EverMind.TestingAgent.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/agents/testing/obj/",
+      "outputPath": "/workspaces/evermind/agents/testing/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"

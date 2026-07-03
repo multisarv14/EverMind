@@ -135,11 +135,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/apps/api/EverMind.API.csproj",
+      "projectUniqueName": "/workspaces/evermind/apps/api/EverMind.API.csproj",
       "projectName": "EverMind.API",
-      "projectPath": "/workspaces/evermind/evermind/apps/api/EverMind.API.csproj",
+      "projectPath": "/workspaces/evermind/apps/api/EverMind.API.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/apps/api/obj/",
+      "outputPath": "/workspaces/evermind/apps/api/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"
@@ -154,11 +154,11 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "/workspaces/evermind/evermind/packages/core/application/EverMind.Application.csproj": {
-              "projectPath": "/workspaces/evermind/evermind/packages/core/application/EverMind.Application.csproj"
+            "/workspaces/evermind/packages/core/application/EverMind.Application.csproj": {
+              "projectPath": "/workspaces/evermind/packages/core/application/EverMind.Application.csproj"
             },
-            "/workspaces/evermind/evermind/packages/core/infrastructure/EverMind.Infrastructure.csproj": {
-              "projectPath": "/workspaces/evermind/evermind/packages/core/infrastructure/EverMind.Infrastructure.csproj"
+            "/workspaces/evermind/packages/core/infrastructure/EverMind.Infrastructure.csproj": {
+              "projectPath": "/workspaces/evermind/packages/core/infrastructure/EverMind.Infrastructure.csproj"
             }
           }
         }

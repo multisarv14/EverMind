@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EverMind.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+df1a8eeede1d6bf9d3fc02910421517349aa3c85")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7aa1a88f7fa38a378afd0313d2247ba7a9f90ffc")]
 [assembly: System.Reflection.AssemblyProductAttribute("EverMind.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EverMind.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

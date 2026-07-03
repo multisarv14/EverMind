@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "+OR0IzGYMBk=",
+  "dgSpecHash": "6VYLEAWBjhk=",
   "success": true,
-  "projectFilePath": "/workspaces/evermind/evermind/packages/core/domain/EverMind.Domain.csproj",
+  "projectFilePath": "/workspaces/evermind/packages/core/domain/EverMind.Domain.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/services/ai-gateway/EverMind.AIGateway.csproj",
+      "projectUniqueName": "/workspaces/evermind/services/ai-gateway/EverMind.AIGateway.csproj",
       "projectName": "EverMind.AIGateway",
-      "projectPath": "/workspaces/evermind/evermind/services/ai-gateway/EverMind.AIGateway.csproj",
+      "projectPath": "/workspaces/evermind/services/ai-gateway/EverMind.AIGateway.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/services/ai-gateway/obj/",
+      "outputPath": "/workspaces/evermind/services/ai-gateway/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"

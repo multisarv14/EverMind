@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/workspaces/evermind/evermind/services/decision-engine/EverMind.DecisionEngine.csproj": {}
+    "/workspaces/evermind/services/decision-engine/EverMind.DecisionEngine.csproj": {}
   },
   "projects": {
-    "/workspaces/evermind/evermind/services/decision-engine/EverMind.DecisionEngine.csproj": {
+    "/workspaces/evermind/services/decision-engine/EverMind.DecisionEngine.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/workspaces/evermind/evermind/services/decision-engine/EverMind.DecisionEngine.csproj",
+        "projectUniqueName": "/workspaces/evermind/services/decision-engine/EverMind.DecisionEngine.csproj",
         "projectName": "EverMind.DecisionEngine",
-        "projectPath": "/workspaces/evermind/evermind/services/decision-engine/EverMind.DecisionEngine.csproj",
+        "projectPath": "/workspaces/evermind/services/decision-engine/EverMind.DecisionEngine.csproj",
         "packagesPath": "/home/codespace/.nuget/packages/",
-        "outputPath": "/workspaces/evermind/evermind/services/decision-engine/obj/",
+        "outputPath": "/workspaces/evermind/services/decision-engine/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/codespace/.nuget/NuGet/NuGet.Config"

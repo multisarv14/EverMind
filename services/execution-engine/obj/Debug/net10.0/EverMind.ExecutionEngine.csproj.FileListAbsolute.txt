@@ -10,3 +10,15 @@
 /workspaces/evermind/evermind/services/execution-engine/obj/Debug/net10.0/refint/EverMind.ExecutionEngine.dll
 /workspaces/evermind/evermind/services/execution-engine/obj/Debug/net10.0/EverMind.ExecutionEngine.pdb
 /workspaces/evermind/evermind/services/execution-engine/obj/Debug/net10.0/ref/EverMind.ExecutionEngine.dll
+/workspaces/evermind/services/execution-engine/bin/Debug/net10.0/EverMind.ExecutionEngine.deps.json
+/workspaces/evermind/services/execution-engine/bin/Debug/net10.0/EverMind.ExecutionEngine.dll
+/workspaces/evermind/services/execution-engine/bin/Debug/net10.0/EverMind.ExecutionEngine.pdb
+/workspaces/evermind/services/execution-engine/obj/Debug/net10.0/EverMind.ExecutionEngine.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/evermind/services/execution-engine/obj/Debug/net10.0/EverMind.ExecutionEngine.AssemblyInfoInputs.cache
+/workspaces/evermind/services/execution-engine/obj/Debug/net10.0/EverMind.ExecutionEngine.AssemblyInfo.cs
+/workspaces/evermind/services/execution-engine/obj/Debug/net10.0/EverMind.ExecutionEngine.csproj.CoreCompileInputs.cache
+/workspaces/evermind/services/execution-engine/obj/Debug/net10.0/EverMind.ExecutionEngine.sourcelink.json
+/workspaces/evermind/services/execution-engine/obj/Debug/net10.0/EverMind.ExecutionEngine.dll
+/workspaces/evermind/services/execution-engine/obj/Debug/net10.0/refint/EverMind.ExecutionEngine.dll
+/workspaces/evermind/services/execution-engine/obj/Debug/net10.0/EverMind.ExecutionEngine.pdb
+/workspaces/evermind/services/execution-engine/obj/Debug/net10.0/ref/EverMind.ExecutionEngine.dll

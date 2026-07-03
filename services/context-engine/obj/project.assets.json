@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/services/context-engine/EverMind.ContextEngine.csproj",
+      "projectUniqueName": "/workspaces/evermind/services/context-engine/EverMind.ContextEngine.csproj",
       "projectName": "EverMind.ContextEngine",
-      "projectPath": "/workspaces/evermind/evermind/services/context-engine/EverMind.ContextEngine.csproj",
+      "projectPath": "/workspaces/evermind/services/context-engine/EverMind.ContextEngine.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/services/context-engine/obj/",
+      "outputPath": "/workspaces/evermind/services/context-engine/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"

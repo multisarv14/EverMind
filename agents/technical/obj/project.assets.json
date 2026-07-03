@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/agents/technical/EverMind.TechnicalAgent.csproj",
+      "projectUniqueName": "/workspaces/evermind/agents/technical/EverMind.TechnicalAgent.csproj",
       "projectName": "EverMind.TechnicalAgent",
-      "projectPath": "/workspaces/evermind/evermind/agents/technical/EverMind.TechnicalAgent.csproj",
+      "projectPath": "/workspaces/evermind/agents/technical/EverMind.TechnicalAgent.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/agents/technical/obj/",
+      "outputPath": "/workspaces/evermind/agents/technical/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"

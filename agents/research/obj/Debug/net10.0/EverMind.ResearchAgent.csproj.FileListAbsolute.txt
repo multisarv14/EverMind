@@ -10,3 +10,15 @@
 /workspaces/evermind/evermind/agents/research/obj/Debug/net10.0/refint/EverMind.ResearchAgent.dll
 /workspaces/evermind/evermind/agents/research/obj/Debug/net10.0/EverMind.ResearchAgent.pdb
 /workspaces/evermind/evermind/agents/research/obj/Debug/net10.0/ref/EverMind.ResearchAgent.dll
+/workspaces/evermind/agents/research/bin/Debug/net10.0/EverMind.ResearchAgent.deps.json
+/workspaces/evermind/agents/research/bin/Debug/net10.0/EverMind.ResearchAgent.dll
+/workspaces/evermind/agents/research/bin/Debug/net10.0/EverMind.ResearchAgent.pdb
+/workspaces/evermind/agents/research/obj/Debug/net10.0/EverMind.ResearchAgent.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/evermind/agents/research/obj/Debug/net10.0/EverMind.ResearchAgent.AssemblyInfoInputs.cache
+/workspaces/evermind/agents/research/obj/Debug/net10.0/EverMind.ResearchAgent.AssemblyInfo.cs
+/workspaces/evermind/agents/research/obj/Debug/net10.0/EverMind.ResearchAgent.csproj.CoreCompileInputs.cache
+/workspaces/evermind/agents/research/obj/Debug/net10.0/EverMind.ResearchAgent.sourcelink.json
+/workspaces/evermind/agents/research/obj/Debug/net10.0/EverMind.ResearchAgent.dll
+/workspaces/evermind/agents/research/obj/Debug/net10.0/refint/EverMind.ResearchAgent.dll
+/workspaces/evermind/agents/research/obj/Debug/net10.0/EverMind.ResearchAgent.pdb
+/workspaces/evermind/agents/research/obj/Debug/net10.0/ref/EverMind.ResearchAgent.dll

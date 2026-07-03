@@ -1,12 +1,15 @@
+using EverMind.API.Agents;
+using EverMind.API.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// Services
 builder.Services.AddOpenApi();
+builder.Services.AddSingleton<ChiefAgent>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// OpenAPI
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -14,28 +17,23 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// EverMind Kernel Endpoint
+app.MapPost("/api/v1/kernel/execute",
+    (ChatRequest request, ChiefAgent chiefAgent) =>
+    {
+        return Results.Ok(chiefAgent.Execute(request));
+    })
+.WithName("EverMindKernel");
 
-app.MapGet("/weatherforecast", () =>
+// Health Check
+app.MapGet("/", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    return Results.Ok(new
+    {
+        Name = "EverMind OS",
+        Version = "0.1.0",
+        Status = "Running"
+    });
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

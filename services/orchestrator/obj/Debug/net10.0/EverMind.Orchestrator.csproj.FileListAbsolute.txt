@@ -10,3 +10,15 @@
 /workspaces/evermind/evermind/services/orchestrator/obj/Debug/net10.0/refint/EverMind.Orchestrator.dll
 /workspaces/evermind/evermind/services/orchestrator/obj/Debug/net10.0/EverMind.Orchestrator.pdb
 /workspaces/evermind/evermind/services/orchestrator/obj/Debug/net10.0/ref/EverMind.Orchestrator.dll
+/workspaces/evermind/services/orchestrator/bin/Debug/net10.0/EverMind.Orchestrator.deps.json
+/workspaces/evermind/services/orchestrator/bin/Debug/net10.0/EverMind.Orchestrator.dll
+/workspaces/evermind/services/orchestrator/bin/Debug/net10.0/EverMind.Orchestrator.pdb
+/workspaces/evermind/services/orchestrator/obj/Debug/net10.0/EverMind.Orchestrator.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/evermind/services/orchestrator/obj/Debug/net10.0/EverMind.Orchestrator.AssemblyInfoInputs.cache
+/workspaces/evermind/services/orchestrator/obj/Debug/net10.0/EverMind.Orchestrator.AssemblyInfo.cs
+/workspaces/evermind/services/orchestrator/obj/Debug/net10.0/EverMind.Orchestrator.csproj.CoreCompileInputs.cache
+/workspaces/evermind/services/orchestrator/obj/Debug/net10.0/EverMind.Orchestrator.sourcelink.json
+/workspaces/evermind/services/orchestrator/obj/Debug/net10.0/EverMind.Orchestrator.dll
+/workspaces/evermind/services/orchestrator/obj/Debug/net10.0/refint/EverMind.Orchestrator.dll
+/workspaces/evermind/services/orchestrator/obj/Debug/net10.0/EverMind.Orchestrator.pdb
+/workspaces/evermind/services/orchestrator/obj/Debug/net10.0/ref/EverMind.Orchestrator.dll

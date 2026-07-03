@@ -882,11 +882,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/tests/EverMind.Tests/EverMind.Tests.csproj",
+      "projectUniqueName": "/workspaces/evermind/tests/EverMind.Tests/EverMind.Tests.csproj",
       "projectName": "EverMind.Tests",
-      "projectPath": "/workspaces/evermind/evermind/tests/EverMind.Tests/EverMind.Tests.csproj",
+      "projectPath": "/workspaces/evermind/tests/EverMind.Tests/EverMind.Tests.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/tests/EverMind.Tests/obj/",
+      "outputPath": "/workspaces/evermind/tests/EverMind.Tests/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"

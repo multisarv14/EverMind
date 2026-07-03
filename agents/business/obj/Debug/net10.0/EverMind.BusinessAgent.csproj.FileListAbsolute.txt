@@ -10,3 +10,15 @@
 /workspaces/evermind/evermind/agents/business/obj/Debug/net10.0/refint/EverMind.BusinessAgent.dll
 /workspaces/evermind/evermind/agents/business/obj/Debug/net10.0/EverMind.BusinessAgent.pdb
 /workspaces/evermind/evermind/agents/business/obj/Debug/net10.0/ref/EverMind.BusinessAgent.dll
+/workspaces/evermind/agents/business/bin/Debug/net10.0/EverMind.BusinessAgent.deps.json
+/workspaces/evermind/agents/business/bin/Debug/net10.0/EverMind.BusinessAgent.dll
+/workspaces/evermind/agents/business/bin/Debug/net10.0/EverMind.BusinessAgent.pdb
+/workspaces/evermind/agents/business/obj/Debug/net10.0/EverMind.BusinessAgent.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/evermind/agents/business/obj/Debug/net10.0/EverMind.BusinessAgent.AssemblyInfoInputs.cache
+/workspaces/evermind/agents/business/obj/Debug/net10.0/EverMind.BusinessAgent.AssemblyInfo.cs
+/workspaces/evermind/agents/business/obj/Debug/net10.0/EverMind.BusinessAgent.csproj.CoreCompileInputs.cache
+/workspaces/evermind/agents/business/obj/Debug/net10.0/EverMind.BusinessAgent.sourcelink.json
+/workspaces/evermind/agents/business/obj/Debug/net10.0/EverMind.BusinessAgent.dll
+/workspaces/evermind/agents/business/obj/Debug/net10.0/refint/EverMind.BusinessAgent.dll
+/workspaces/evermind/agents/business/obj/Debug/net10.0/EverMind.BusinessAgent.pdb
+/workspaces/evermind/agents/business/obj/Debug/net10.0/ref/EverMind.BusinessAgent.dll

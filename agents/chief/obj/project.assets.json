@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/agents/chief/EverMind.ChiefAgent.csproj",
+      "projectUniqueName": "/workspaces/evermind/agents/chief/EverMind.ChiefAgent.csproj",
       "projectName": "EverMind.ChiefAgent",
-      "projectPath": "/workspaces/evermind/evermind/agents/chief/EverMind.ChiefAgent.csproj",
+      "projectPath": "/workspaces/evermind/agents/chief/EverMind.ChiefAgent.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/agents/chief/obj/",
+      "outputPath": "/workspaces/evermind/agents/chief/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"

@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/services/memory-engine/EverMind.MemoryEngine.csproj",
+      "projectUniqueName": "/workspaces/evermind/services/memory-engine/EverMind.MemoryEngine.csproj",
       "projectName": "EverMind.MemoryEngine",
-      "projectPath": "/workspaces/evermind/evermind/services/memory-engine/EverMind.MemoryEngine.csproj",
+      "projectPath": "/workspaces/evermind/services/memory-engine/EverMind.MemoryEngine.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/services/memory-engine/obj/",
+      "outputPath": "/workspaces/evermind/services/memory-engine/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"

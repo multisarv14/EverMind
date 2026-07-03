@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/workspaces/evermind/evermind/services/execution-engine/EverMind.ExecutionEngine.csproj": {}
+    "/workspaces/evermind/services/execution-engine/EverMind.ExecutionEngine.csproj": {}
   },
   "projects": {
-    "/workspaces/evermind/evermind/services/execution-engine/EverMind.ExecutionEngine.csproj": {
+    "/workspaces/evermind/services/execution-engine/EverMind.ExecutionEngine.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/workspaces/evermind/evermind/services/execution-engine/EverMind.ExecutionEngine.csproj",
+        "projectUniqueName": "/workspaces/evermind/services/execution-engine/EverMind.ExecutionEngine.csproj",
         "projectName": "EverMind.ExecutionEngine",
-        "projectPath": "/workspaces/evermind/evermind/services/execution-engine/EverMind.ExecutionEngine.csproj",
+        "projectPath": "/workspaces/evermind/services/execution-engine/EverMind.ExecutionEngine.csproj",
         "packagesPath": "/home/codespace/.nuget/packages/",
-        "outputPath": "/workspaces/evermind/evermind/services/execution-engine/obj/",
+        "outputPath": "/workspaces/evermind/services/execution-engine/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/codespace/.nuget/NuGet/NuGet.Config"

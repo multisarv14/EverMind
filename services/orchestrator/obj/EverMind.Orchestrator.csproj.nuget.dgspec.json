@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/workspaces/evermind/evermind/services/orchestrator/EverMind.Orchestrator.csproj": {}
+    "/workspaces/evermind/services/orchestrator/EverMind.Orchestrator.csproj": {}
   },
   "projects": {
-    "/workspaces/evermind/evermind/services/orchestrator/EverMind.Orchestrator.csproj": {
+    "/workspaces/evermind/services/orchestrator/EverMind.Orchestrator.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/workspaces/evermind/evermind/services/orchestrator/EverMind.Orchestrator.csproj",
+        "projectUniqueName": "/workspaces/evermind/services/orchestrator/EverMind.Orchestrator.csproj",
         "projectName": "EverMind.Orchestrator",
-        "projectPath": "/workspaces/evermind/evermind/services/orchestrator/EverMind.Orchestrator.csproj",
+        "projectPath": "/workspaces/evermind/services/orchestrator/EverMind.Orchestrator.csproj",
         "packagesPath": "/home/codespace/.nuget/packages/",
-        "outputPath": "/workspaces/evermind/evermind/services/orchestrator/obj/",
+        "outputPath": "/workspaces/evermind/services/orchestrator/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/codespace/.nuget/NuGet/NuGet.Config"

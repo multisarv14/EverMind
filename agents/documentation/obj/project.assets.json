@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/agents/documentation/EverMind.DocumentationAgent.csproj",
+      "projectUniqueName": "/workspaces/evermind/agents/documentation/EverMind.DocumentationAgent.csproj",
       "projectName": "EverMind.DocumentationAgent",
-      "projectPath": "/workspaces/evermind/evermind/agents/documentation/EverMind.DocumentationAgent.csproj",
+      "projectPath": "/workspaces/evermind/agents/documentation/EverMind.DocumentationAgent.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/agents/documentation/obj/",
+      "outputPath": "/workspaces/evermind/agents/documentation/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"

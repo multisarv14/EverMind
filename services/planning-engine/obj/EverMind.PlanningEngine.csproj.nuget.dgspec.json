@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/workspaces/evermind/evermind/services/planning-engine/EverMind.PlanningEngine.csproj": {}
+    "/workspaces/evermind/services/planning-engine/EverMind.PlanningEngine.csproj": {}
   },
   "projects": {
-    "/workspaces/evermind/evermind/services/planning-engine/EverMind.PlanningEngine.csproj": {
+    "/workspaces/evermind/services/planning-engine/EverMind.PlanningEngine.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/workspaces/evermind/evermind/services/planning-engine/EverMind.PlanningEngine.csproj",
+        "projectUniqueName": "/workspaces/evermind/services/planning-engine/EverMind.PlanningEngine.csproj",
         "projectName": "EverMind.PlanningEngine",
-        "projectPath": "/workspaces/evermind/evermind/services/planning-engine/EverMind.PlanningEngine.csproj",
+        "projectPath": "/workspaces/evermind/services/planning-engine/EverMind.PlanningEngine.csproj",
         "packagesPath": "/home/codespace/.nuget/packages/",
-        "outputPath": "/workspaces/evermind/evermind/services/planning-engine/obj/",
+        "outputPath": "/workspaces/evermind/services/planning-engine/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/codespace/.nuget/NuGet/NuGet.Config"

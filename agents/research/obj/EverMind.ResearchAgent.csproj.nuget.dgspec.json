@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/workspaces/evermind/evermind/agents/research/EverMind.ResearchAgent.csproj": {}
+    "/workspaces/evermind/agents/research/EverMind.ResearchAgent.csproj": {}
   },
   "projects": {
-    "/workspaces/evermind/evermind/agents/research/EverMind.ResearchAgent.csproj": {
+    "/workspaces/evermind/agents/research/EverMind.ResearchAgent.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/workspaces/evermind/evermind/agents/research/EverMind.ResearchAgent.csproj",
+        "projectUniqueName": "/workspaces/evermind/agents/research/EverMind.ResearchAgent.csproj",
         "projectName": "EverMind.ResearchAgent",
-        "projectPath": "/workspaces/evermind/evermind/agents/research/EverMind.ResearchAgent.csproj",
+        "projectPath": "/workspaces/evermind/agents/research/EverMind.ResearchAgent.csproj",
         "packagesPath": "/home/codespace/.nuget/packages/",
-        "outputPath": "/workspaces/evermind/evermind/agents/research/obj/",
+        "outputPath": "/workspaces/evermind/agents/research/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/codespace/.nuget/NuGet/NuGet.Config"

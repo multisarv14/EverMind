@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/workspaces/evermind/evermind/agents/understanding/EverMind.UnderstandingAgent.csproj": {}
+    "/workspaces/evermind/agents/understanding/EverMind.UnderstandingAgent.csproj": {}
   },
   "projects": {
-    "/workspaces/evermind/evermind/agents/understanding/EverMind.UnderstandingAgent.csproj": {
+    "/workspaces/evermind/agents/understanding/EverMind.UnderstandingAgent.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/workspaces/evermind/evermind/agents/understanding/EverMind.UnderstandingAgent.csproj",
+        "projectUniqueName": "/workspaces/evermind/agents/understanding/EverMind.UnderstandingAgent.csproj",
         "projectName": "EverMind.UnderstandingAgent",
-        "projectPath": "/workspaces/evermind/evermind/agents/understanding/EverMind.UnderstandingAgent.csproj",
+        "projectPath": "/workspaces/evermind/agents/understanding/EverMind.UnderstandingAgent.csproj",
         "packagesPath": "/home/codespace/.nuget/packages/",
-        "outputPath": "/workspaces/evermind/evermind/agents/understanding/obj/",
+        "outputPath": "/workspaces/evermind/agents/understanding/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/codespace/.nuget/NuGet/NuGet.Config"

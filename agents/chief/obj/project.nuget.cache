@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "FOxSAt5eN9Y=",
+  "dgSpecHash": "a524PTTttBA=",
   "success": true,
-  "projectFilePath": "/workspaces/evermind/evermind/agents/chief/EverMind.ChiefAgent.csproj",
+  "projectFilePath": "/workspaces/evermind/agents/chief/EverMind.ChiefAgent.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

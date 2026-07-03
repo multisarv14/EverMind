@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/services/learning-engine/EverMind.LearningEngine.csproj",
+      "projectUniqueName": "/workspaces/evermind/services/learning-engine/EverMind.LearningEngine.csproj",
       "projectName": "EverMind.LearningEngine",
-      "projectPath": "/workspaces/evermind/evermind/services/learning-engine/EverMind.LearningEngine.csproj",
+      "projectPath": "/workspaces/evermind/services/learning-engine/EverMind.LearningEngine.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/services/learning-engine/obj/",
+      "outputPath": "/workspaces/evermind/services/learning-engine/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"

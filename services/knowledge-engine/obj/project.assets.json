@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/services/knowledge-engine/EverMind.KnowledgeEngine.csproj",
+      "projectUniqueName": "/workspaces/evermind/services/knowledge-engine/EverMind.KnowledgeEngine.csproj",
       "projectName": "EverMind.KnowledgeEngine",
-      "projectPath": "/workspaces/evermind/evermind/services/knowledge-engine/EverMind.KnowledgeEngine.csproj",
+      "projectPath": "/workspaces/evermind/services/knowledge-engine/EverMind.KnowledgeEngine.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/services/knowledge-engine/obj/",
+      "outputPath": "/workspaces/evermind/services/knowledge-engine/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"

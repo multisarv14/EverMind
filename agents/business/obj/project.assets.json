@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/workspaces/evermind/evermind/agents/business/EverMind.BusinessAgent.csproj",
+      "projectUniqueName": "/workspaces/evermind/agents/business/EverMind.BusinessAgent.csproj",
       "projectName": "EverMind.BusinessAgent",
-      "projectPath": "/workspaces/evermind/evermind/agents/business/EverMind.BusinessAgent.csproj",
+      "projectPath": "/workspaces/evermind/agents/business/EverMind.BusinessAgent.csproj",
       "packagesPath": "/home/codespace/.nuget/packages/",
-      "outputPath": "/workspaces/evermind/evermind/agents/business/obj/",
+      "outputPath": "/workspaces/evermind/agents/business/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/codespace/.nuget/NuGet/NuGet.Config"

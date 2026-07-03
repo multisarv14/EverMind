@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "RzKXjqmaggc=",
+  "dgSpecHash": "pmSx4Y+dxrM=",
   "success": true,
-  "projectFilePath": "/workspaces/evermind/evermind/tests/EverMind.Tests/EverMind.Tests.csproj",
+  "projectFilePath": "/workspaces/evermind/tests/EverMind.Tests/EverMind.Tests.csproj",
   "expectedPackageFiles": [
     "/home/codespace/.nuget/packages/coverlet.collector/6.0.4/coverlet.collector.6.0.4.nupkg.sha512",
     "/home/codespace/.nuget/packages/microsoft.codecoverage/17.14.1/microsoft.codecoverage.17.14.1.nupkg.sha512",
