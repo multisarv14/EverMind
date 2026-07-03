@@ -1,0 +1,41 @@
+# =========================================
+# EverMind OS
+# =========================================
+
+# Build output
+**/bin/
+**/obj/
+
+# Visual Studio
+.vs/
+
+# VS Code
+.vscode/
+
+# Rider
+.idea/
+
+# User files
+*.user
+*.suo
+*.userprefs
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*
+
+# Node
+node_modules/
+.next/
+dist/
+
+# Test
+TestResults/
+coverage/
+
+# OS
+.DS_Store
+Thumbs.db
