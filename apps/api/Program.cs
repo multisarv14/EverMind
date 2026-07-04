@@ -1,4 +1,4 @@
-using EverMind.API.Agents;
+using EverMind.ChiefAgent;
 using EverMind.API.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +9,6 @@ builder.Services.AddSingleton<ChiefAgent>();
 
 var app = builder.Build();
 
-// OpenAPI
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -17,15 +16,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// EverMind Kernel Endpoint
 app.MapPost("/api/v1/kernel/execute",
     (ChatRequest request, ChiefAgent chiefAgent) =>
     {
-        return Results.Ok(chiefAgent.Execute(request));
-    })
-.WithName("EverMindKernel");
+        return Results.Ok(new
+        {
+            success = true,
+            agent = chiefAgent.Name,
+            message = $"EverMind received: {request.Message}",
+            version = "0.1.0"
+        });
+    });
 
-// Health Check
 app.MapGet("/", () =>
 {
     return Results.Ok(new

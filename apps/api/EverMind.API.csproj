@@ -13,6 +13,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\packages\core\application\EverMind.Application.csproj" />
     <ProjectReference Include="..\..\packages\core\infrastructure\EverMind.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\agents\chief\EverMind.ChiefAgent.csproj" />
+    <ProjectReference Include="..\..\services\orchestrator\EverMind.Orchestrator.csproj" />
+    <ProjectReference Include="..\..\services\decision-engine\EverMind.DecisionEngine.csproj" />
+    <ProjectReference Include="..\..\services\memory-engine\EverMind.MemoryEngine.csproj" />
+    <ProjectReference Include="..\..\services\ai-gateway\EverMind.AIGateway.csproj" />
   </ItemGroup>
 
 </Project>
