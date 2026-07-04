@@ -39,6 +39,9 @@
   <Folder Name="/packages/core/sharedkernel/">
     <Project Path="packages/core/sharedkernel/EverMind.SharedKernel.csproj" />
   </Folder>
+  <Folder Name="/packages/memory/">
+    <Project Path="packages/memory/EverMind.Memory/EverMind.Memory.csproj" />
+  </Folder>
   <Folder Name="/services/" />
   <Folder Name="/services/abstractions/">
     <Project Path="services/abstractions/EverMind.Abstractions.csproj" />
