@@ -73,6 +73,9 @@
   <Folder Name="/services/planning-engine/">
     <Project Path="services/planning-engine/EverMind.PlanningEngine.csproj" />
   </Folder>
+  <Folder Name="/services/understanding-engine/">
+    <Project Path="services/understanding-engine/EverMind.UnderstandingEngine.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/EverMind.Tests/EverMind.Tests.csproj" />
   </Folder>

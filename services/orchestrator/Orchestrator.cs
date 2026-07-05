@@ -22,18 +22,34 @@ public sealed class Orchestrator : IOrchestrator
             Input = context.Prompt
         };
 
-        foreach (var agent in _agents)
-        {
-            var result = await agent.ExecuteAsync(
-                agentContext,
-                cancellationToken);
+        Intent intent = DetectIntent(context.Prompt);
 
-            if (result.Success)
-                return result;
+        var agent = _agents.FirstOrDefault(a => a.Intent == intent);
+
+        if (agent is null)
+        {
+            return new AgentResult(false, $"No agent registered for {intent}.");
         }
 
-        return new AgentResult(
-            false,
-            "No suitable agent found.");
+        return await agent.ExecuteAsync(agentContext, cancellationToken);
+    }
+
+    private static Intent DetectIntent(string prompt)
+    {
+        prompt = prompt.ToLowerInvariant();
+
+        if (prompt.Contains("business"))
+            return Intent.Business;
+
+        if (prompt.Contains("research"))
+            return Intent.Research;
+
+        if (prompt.Contains("document"))
+            return Intent.Documentation;
+
+        if (prompt.Contains("test"))
+            return Intent.Testing;
+
+        return Intent.Technical;
     }
 }

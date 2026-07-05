@@ -1,29 +1,22 @@
 using EverMind.Application.Abstractions;
-using EverMind.Application.Models;
 
 namespace EverMind.Application.Kernel;
 
 public sealed class Kernel : IKernel
 {
-    private readonly IAgent _chiefAgent;
+    private readonly IOrchestrator _orchestrator;
 
-    public Kernel(IAgent chiefAgent)
+    public Kernel(IOrchestrator orchestrator)
     {
-        _chiefAgent = chiefAgent;
+        _orchestrator = orchestrator;
     }
 
     public Task<IAgentResult> RunAsync(
         IKernelContext context,
         CancellationToken cancellationToken = default)
     {
-        var agentContext = new AgentContext
-        {
-            SessionId = context.SessionId,
-            Input = context.Prompt
-        };
-
-        return _chiefAgent.ExecuteAsync(
-            agentContext,
+        return _orchestrator.ExecuteAsync(
+            context,
             cancellationToken);
     }
 }
