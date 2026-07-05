@@ -1,4 +1,5 @@
 import "./globals.css";
+import { ExecutionSessionProvider } from "@/context/ExecutionSessionContext";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -11,7 +12,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body><ExecutionSessionProvider>{children}</ExecutionSessionProvider></body>
     </html>
   );
 }

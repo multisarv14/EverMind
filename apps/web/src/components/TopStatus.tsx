@@ -1,3 +1,5 @@
+"use client";
+
 import { Activity, Bot, Brain, Sparkles } from "lucide-react";
 
 const cards = [
@@ -28,6 +30,7 @@ const cards = [
 ];
 
 export default function TopStatus() {
+  
   return (
     <div className="grid grid-cols-4 gap-4">
       {cards.map(({ title, value, dot, Icon }) => (

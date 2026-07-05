@@ -1,19 +1,23 @@
-const events = [
-  {
-    title: "System initialized and ready",
-    desc: "EverMind is online and learning about your goals",
-  },
-  {
-    title: "AI team activated",
-    desc: "12 agents are online and ready",
-  },
-  {
-    title: "Waiting for your command",
-    desc: "Tell me what you want to accomplish",
-  },
-];
+"use client";
+
+import { useExecutionSession } from "@/context/ExecutionSessionContext";
 
 export default function ActivityFeed() {
+  const { session } = useExecutionSession();
+  const events = session.events;
+
+  const items =
+    events.length > 0
+      ? events
+      : [
+          {
+            id: "idle",
+            title: "Waiting for your command",
+            description: "EverMind is ready.",
+            createdAt: new Date(),
+          },
+        ];
+
   return (
     <section className="ev-card h-full p-5">
 
@@ -22,31 +26,35 @@ export default function ActivityFeed() {
           EverMind Activity Feed
         </h3>
 
-        <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] font-medium text-emerald-300">
-          ● Live
+        <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] text-emerald-300">
+          {session.status.toUpperCase()}
         </span>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-4">
 
-        {events.map((item) => (
-          <div key={item.title} className="flex gap-3">
+        {items.map((item) => (
 
-            <div className="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-400" />
+          <div key={item.id} className="flex gap-3">
+
+            <div className="mt-2 h-2.5 w-2.5 rounded-full bg-violet-400" />
 
             <div>
 
-              <div className="text-[15px] font-semibold text-white">
+              <div className="text-[15px] font-medium text-white">
                 {item.title}
               </div>
 
-              <div className="mt-1 text-[13px] leading-5 text-white/45">
-                {item.desc}
-              </div>
+              {item.description && (
+                <div className="mt-1 text-[13px] text-white/45">
+                  {item.description}
+                </div>
+              )}
 
             </div>
 
           </div>
+
         ))}
 
       </div>
