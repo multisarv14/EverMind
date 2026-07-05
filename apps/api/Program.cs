@@ -1,11 +1,37 @@
-using EverMind.ChiefAgent;
 using EverMind.API.Models;
+using EverMind.Application.Abstractions;
+using EverMind.Application.Kernel;
+using EverMind.Application.Models;
+using EverMind.ChiefAgent;
+
+using EverMind.BusinessAgent;
+using EverMind.TechnicalAgent;
+using EverMind.ResearchAgent;
+using EverMind.DocumentationAgent;
+using EverMind.TestingAgent;
+
+using EverMind.Orchestrator;
+using EverMind.UnderstandingEngine;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Services
+// OpenAPI
 builder.Services.AddOpenApi();
-builder.Services.AddSingleton<ChiefAgent>();
+
+// Runtime
+builder.Services.AddSingleton<IUnderstandingEngine, UnderstandingEngine>();
+builder.Services.AddSingleton<IOrchestrator, Orchestrator>();
+
+// Agents
+builder.Services.AddSingleton<IAgent, ChiefAgent>();
+builder.Services.AddSingleton<IAgent, BusinessAgent>();
+builder.Services.AddSingleton<IAgent, TechnicalAgent>();
+builder.Services.AddSingleton<IAgent, ResearchAgent>();
+builder.Services.AddSingleton<IAgent, DocumentationAgent>();
+builder.Services.AddSingleton<IAgent, TestingAgent>();
+
+// Kernel
+builder.Services.AddSingleton<IKernel, Kernel>();
 
 var app = builder.Build();
 
@@ -17,25 +43,31 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapPost("/api/v1/kernel/execute",
-    (ChatRequest request, ChiefAgent chiefAgent) =>
-    {
-        return Results.Ok(new
-        {
-            success = true,
-            agent = chiefAgent.Name,
-            message = $"EverMind received: {request.Message}",
-            version = "0.1.0"
-        });
-    });
-
-app.MapGet("/", () =>
+async (
+    ChatRequest request,
+    IKernel kernel) =>
 {
+    var context = new KernelContext
+    {
+        SessionId = Guid.NewGuid(),
+        Prompt = request.Message
+    };
+
+    var result = await kernel.RunAsync(context);
+
     return Results.Ok(new
     {
-        Name = "EverMind OS",
-        Version = "0.1.0",
-        Status = "Running"
+        success = result.Success,
+        response = result.Message
     });
 });
+
+app.MapGet("/", () => Results.Ok(new
+{
+    Product = "EverMind AI OS",
+    Runtime = "Kernel",
+    Status = "Running",
+    Version = "0.2.0"
+}));
 
 app.Run();

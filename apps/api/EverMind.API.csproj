@@ -18,6 +18,11 @@
     <ProjectReference Include="..\..\services\decision-engine\EverMind.DecisionEngine.csproj" />
     <ProjectReference Include="..\..\services\memory-engine\EverMind.MemoryEngine.csproj" />
     <ProjectReference Include="..\..\services\ai-gateway\EverMind.AIGateway.csproj" />
+    <ProjectReference Include="..\..\agents\business\EverMind.BusinessAgent.csproj" />
+    <ProjectReference Include="..\..\agents\technical\EverMind.TechnicalAgent.csproj" />
+    <ProjectReference Include="..\..\agents\research\EverMind.ResearchAgent.csproj" />
+    <ProjectReference Include="..\..\agents\documentation\EverMind.DocumentationAgent.csproj" />
+    <ProjectReference Include="..\..\agents\testing\EverMind.TestingAgent.csproj" />
   </ItemGroup>
 
 </Project>

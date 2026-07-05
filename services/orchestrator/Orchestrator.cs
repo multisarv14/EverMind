@@ -6,50 +6,37 @@ namespace EverMind.Orchestrator;
 public sealed class Orchestrator : IOrchestrator
 {
     private readonly IEnumerable<IAgent> _agents;
+    private readonly IUnderstandingEngine _understanding;
 
-    public Orchestrator(IEnumerable<IAgent> agents)
+    public Orchestrator(
+        IEnumerable<IAgent> agents,
+        IUnderstandingEngine understanding)
     {
         _agents = agents;
+        _understanding = understanding;
     }
 
     public async Task<IAgentResult> ExecuteAsync(
         IKernelContext context,
         CancellationToken cancellationToken = default)
     {
+        var understanding = _understanding.Analyze(context.Prompt);
+
         var agentContext = new AgentContext
         {
             SessionId = context.SessionId,
             Input = context.Prompt
         };
 
-        Intent intent = DetectIntent(context.Prompt);
-
-        var agent = _agents.FirstOrDefault(a => a.Intent == intent);
+        var agent = _agents.FirstOrDefault(a => a.Intent == understanding.Intent);
 
         if (agent is null)
-        {
-            return new AgentResult(false, $"No agent registered for {intent}.");
-        }
+            return new AgentResult(
+                false,
+                $"No agent registered for {understanding.Intent}");
 
-        return await agent.ExecuteAsync(agentContext, cancellationToken);
-    }
-
-    private static Intent DetectIntent(string prompt)
-    {
-        prompt = prompt.ToLowerInvariant();
-
-        if (prompt.Contains("business"))
-            return Intent.Business;
-
-        if (prompt.Contains("research"))
-            return Intent.Research;
-
-        if (prompt.Contains("document"))
-            return Intent.Documentation;
-
-        if (prompt.Contains("test"))
-            return Intent.Testing;
-
-        return Intent.Technical;
+        return await agent.ExecuteAsync(
+            agentContext,
+            cancellationToken);
     }
 }

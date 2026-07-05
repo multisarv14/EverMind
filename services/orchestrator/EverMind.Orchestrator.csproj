@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../packages/core/application/EverMind.Application.csproj" />
+    <ProjectReference Include="..\understanding-engine\EverMind.UnderstandingEngine.csproj" />
   </ItemGroup>
 
 </Project>
