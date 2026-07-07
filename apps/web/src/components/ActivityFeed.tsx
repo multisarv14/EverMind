@@ -12,8 +12,8 @@ export default function ActivityFeed() {
       : [
           {
             id: "idle",
-            title: "Waiting for your command",
-            description: "EverMind is ready.",
+            title: session.objective || "No active execution",
+            description: session.response || "Waiting for an objective...",
             createdAt: new Date(),
           },
         ];
