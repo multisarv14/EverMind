@@ -21,9 +21,19 @@ export interface ExecutionEvent {
   createdAt: Date;
 }
 
+export type RuntimeStage =
+  | "Idle"
+  | "Understanding"
+  | "Planning"
+  | "Selecting Agent"
+  | "Executing"
+  | "Completed"
+  | "Failed";
+
 export interface ExecutionSession {
   objective: string;
   status: ExecutionStatus;
+  currentStage: RuntimeStage;
   response?: string;
   selectedAgent?: string;
   events: ExecutionEvent[];
@@ -46,6 +56,8 @@ export function ExecutionSessionProvider({
   const [session, setSession] = useState<ExecutionSession>({
     objective: "",
     status: "idle",
+    currentStage: "Idle",
+    selectedAgent: "Chief Agent",
     events: [],
   });
 

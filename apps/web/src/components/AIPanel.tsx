@@ -1,3 +1,5 @@
+"use client";
+
 import {
   BarChart3,
   Brain,
@@ -10,6 +12,8 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
+
+import { useExecutionSession } from "@/context/ExecutionSessionContext";
 
 const agents = [
   { icon: Brain, title: "Strategy Agent", color: "text-sky-300" },
@@ -25,45 +29,70 @@ const agents = [
 ];
 
 export default function AIPanel() {
+  const { session } = useExecutionSession();
+
   return (
     <aside className="w-[260px] border-l border-white/10 bg-[#0a0d17] p-5">
 
       <div className="mb-6">
-        <h2 className="text-xl font-semibold">
-          My AI Team
-        </h2>
+        <h2 className="text-xl font-semibold">My AI Team</h2>
 
         <p className="text-sm text-white/45">
-          Always Working
+          {session.selectedAgent || "Chief Agent"} • {session.currentStage}
         </p>
+
+        <div className="mt-4 rounded-lg border border-violet-500/20 bg-white/5 p-3">
+          <div className="text-xs uppercase tracking-wider text-white/40">
+            Last Response
+          </div>
+
+          <div className="mt-2 text-sm text-white/80">
+            {session.response || "Waiting for execution..."}
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-1">
+        {agents.map(({ icon: Icon, title, color }) => {
+          const active =
+            title === (session.selectedAgent || "Chief Agent");
 
-        {agents.map(({ icon: Icon, title, color }) => (
+          return (
+            <div
+              key={title}
+              className={`rounded-xl border p-2 ${
+                active
+                  ? "border-violet-500 bg-violet-500/10"
+                  : "border-white/10 bg-white/5"
+              }`}
+            >
+              <Icon className={color} size={20} />
 
-          <div
-            key={title}
-            className="rounded-xl border border-white/10 bg-white/5 p-2"
-          >
+              <div className="mt-3 text-sm font-medium">
+                {title}
+              </div>
 
-            <Icon className={color} size={20} />
+              <div
+                className={`mt-2 flex items-center gap-1 text-xs ${
+                  active
+                    ? "text-violet-300"
+                    : "text-white/40"
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    active
+                      ? "bg-violet-400"
+                      : "bg-slate-500"
+                  }`}
+                />
 
-            <div className="mt-3 text-sm font-medium">
-              {title}
+                {active ? "Active" : "Idle"}
+              </div>
             </div>
-
-            <div className="mt-2 flex items-center gap-1 text-xs text-emerald-300">
-              <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
-              Active
-            </div>
-
-          </div>
-
-        ))}
-
+          );
+        })}
       </div>
-
     </aside>
   );
 }

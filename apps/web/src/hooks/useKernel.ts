@@ -5,7 +5,7 @@ import { KernelService } from "@/services/kernel.service";
 import { useExecutionSession } from "@/context/ExecutionSessionContext";
 
 export function useKernel() {
-  const { session, setSession, addEvent } = useExecutionSession();
+  const { setSession, addEvent } = useExecutionSession();
   const [loading, setLoading] = useState(false);
 
   async function run(message: string) {
@@ -13,16 +13,44 @@ export function useKernel() {
 
     setLoading(true);
 
-    setSession({
-      ...session,
+    setSession(prev => ({
+      ...prev,
       objective: message,
       status: "running",
-    });
+      currentStage: "Understanding",
+      response: "",
+      events: [],
+    }));
 
-    addEvent(
-      "Objective Received",
-      message
-    );
+    addEvent("Understanding", "Analyzing objective...");
+
+    await new Promise(r => setTimeout(r, 250));
+
+    setSession(prev => ({
+      ...prev,
+      currentStage: "Planning",
+    }));
+
+    addEvent("Planning", "Building execution plan...");
+
+    await new Promise(r => setTimeout(r, 250));
+
+    setSession(prev => ({
+      ...prev,
+      currentStage: "Selecting Agent",
+      selectedAgent: "Chief Agent",
+    }));
+
+    addEvent("Selecting Agent", "Chief Agent selected.");
+
+    await new Promise(r => setTimeout(r, 250));
+
+    setSession(prev => ({
+      ...prev,
+      currentStage: "Executing",
+    }));
+
+    addEvent("Executing", "Executing through Kernel...");
 
     try {
       const result = await KernelService.execute(message);
@@ -31,28 +59,23 @@ export function useKernel() {
         setSession(prev => ({
           ...prev,
           status: "completed",
+          currentStage: "Completed",
           response: result.data?.response ?? "",
         }));
 
-        addEvent(
-          "Execution Completed",
-          "Kernel returned a response."
-        );
+        addEvent("Completed", "Execution finished successfully.");
       } else {
         setSession(prev => ({
           ...prev,
           status: "failed",
+          currentStage: "Failed",
           response: result.error,
         }));
 
-        addEvent(
-          "Execution Failed",
-          result.error
-        );
+        addEvent("Failed", result.error);
       }
 
       return result;
-
     } finally {
       setLoading(false);
     }
