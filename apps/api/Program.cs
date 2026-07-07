@@ -12,6 +12,7 @@ using EverMind.TestingAgent;
 
 using EverMind.Orchestrator;
 using EverMind.UnderstandingEngine;
+using EverMind.RuntimeStream;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,7 @@ builder.Services.AddOpenApi();
 // Runtime
 builder.Services.AddSingleton<IUnderstandingEngine, UnderstandingEngine>();
 builder.Services.AddSingleton<IOrchestrator, Orchestrator>();
+builder.Services.AddSingleton<IRuntimeStream, RuntimeStream>();
 
 // Agents
 builder.Services.AddSingleton<IAgent, ChiefAgent>();
@@ -60,6 +62,33 @@ async (
         success = result.Success,
         response = result.Message
     });
+});
+
+
+app.MapGet("/api/v1/runtime/stream",
+async (HttpContext context, IRuntimeStream runtime) =>
+{
+    context.Response.Headers.Append("Content-Type", "text/event-stream");
+    context.Response.Headers.Append("Cache-Control", "no-cache");
+
+    var sent = 0;
+
+    while (!context.RequestAborted.IsCancellationRequested)
+    {
+        var events = runtime.Events;
+
+        while (sent < events.Count)
+        {
+            var e = events[sent++];
+
+            await context.Response.WriteAsync(
+                $"data: {System.Text.Json.JsonSerializer.Serialize(e)}\n\n");
+
+            await context.Response.Body.FlushAsync();
+        }
+
+        await Task.Delay(200, context.RequestAborted);
+    }
 });
 
 app.MapGet("/", () => Results.Ok(new
