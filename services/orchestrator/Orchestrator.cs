@@ -1,5 +1,7 @@
 using EverMind.Application.Abstractions;
 using EverMind.Application.Models;
+using EverMind.Memory;
+using EverMind.Memory.Models;
 using EverMind.RuntimeStream;
 
 namespace EverMind.Orchestrator;
@@ -9,15 +11,18 @@ public sealed class Orchestrator : IOrchestrator
     private readonly IEnumerable<IAgent> _agents;
     private readonly IUnderstandingEngine _understanding;
     private readonly IRuntimeStream _runtime;
+    private readonly IMemoryStore _memory;
 
     public Orchestrator(
         IEnumerable<IAgent> agents,
         IUnderstandingEngine understanding,
-        IRuntimeStream runtime)
+        IRuntimeStream runtime,
+        IMemoryStore memory)
     {
         _agents = agents;
         _understanding = understanding;
         _runtime = runtime;
+        _memory = memory;
     }
 
     public async Task<IAgentResult> ExecuteAsync(
@@ -69,6 +74,16 @@ public sealed class Orchestrator : IOrchestrator
             await agent.ExecuteAsync(
                 agentContext,
                 cancellationToken);
+
+        _memory.Save(
+            new MemoryRecord(
+                context.SessionId,
+                context.Prompt,
+                agent.GetType().Name,
+                result.Message,
+                DateTime.UtcNow
+            )
+        );
 
         _runtime.Publish(
             result.Success ? "Completed" : "Failed",
