@@ -1,23 +1,27 @@
-using EverMind.PlanningEngine.Models;
+using EverMind.Application.Abstractions;
 
 namespace EverMind.PlanningEngine;
 
 public sealed class PlanningEngine : IPlanningEngine
 {
-    public ExecutionPlan CreatePlan(string objective, string intent)
+    public Task PlanAsync(
+        IKernelContext context,
+        CancellationToken cancellationToken = default)
     {
-        return new ExecutionPlan
+        context.Items["Plan"] = new Dictionary<string, object>
         {
-            Objective = objective,
-            SelectedAgent = intent,
-            Steps =
-            [
+            ["Status"] = "Created",
+            ["Timestamp"] = DateTime.UtcNow,
+            ["Steps"] = new[]
+            {
                 "Understand objective",
                 "Create execution strategy",
                 "Select best agent",
                 "Execute task",
                 "Validate result"
-            ]
+            }
         };
+
+        return Task.CompletedTask;
     }
 }
