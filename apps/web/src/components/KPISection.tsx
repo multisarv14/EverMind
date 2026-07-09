@@ -1,63 +1,85 @@
+"use client";
+
 import {
   Brain,
-  CheckSquare,
-  Code2,
-  DollarSign,
-  FileText,
-  FolderKanban,
-  Scale,
+  Activity,
+  Database,
+  CheckCircle,
+  Cpu,
+  Workflow,
+  Timer,
 } from "lucide-react";
 
-const cards = [
-  { icon: Scale, title: "Active Initiatives", value: "0", sub: "No initiatives yet", color: "text-violet-300" },
-  { icon: Code2, title: "Projects", value: "0", sub: "No projects yet", color: "text-cyan-300" },
-  { icon: CheckSquare, title: "Tasks", value: "0", sub: "No tasks yet", color: "text-emerald-300" },
-  { icon: FolderKanban, title: "Decisions", value: "0", sub: "No decisions yet", color: "text-amber-300" },
-  { icon: FileText, title: "Documents", value: "0", sub: "No documents yet", color: "text-pink-300" },
-  { icon: Brain, title: "Memory", value: "0", sub: "Learning your business", color: "text-violet-300" },
-  { icon: DollarSign, title: "Financial", value: "₹0", sub: "No financial data", color: "text-yellow-300" },
-];
+import { useExecutionSession } from "@/context/ExecutionSessionContext";
 
 export default function KPISection() {
+  const { session } = useExecutionSession();
+
+  const cards = [
+    {
+      icon: Activity,
+      title: "Runtime Events",
+      value: session.events.length,
+      color: "text-violet-300",
+    },
+    {
+      icon: Brain,
+      title: "Current Stage",
+      value: session.currentStage,
+      color: "text-cyan-300",
+    },
+    {
+      icon: Cpu,
+      title: "Active Agent",
+      value: session.selectedAgent || "Chief Agent",
+      color: "text-emerald-300",
+    },
+    {
+      icon: Database,
+      title: "Memory",
+      value: "Ready",
+      color: "text-pink-300",
+    },
+    {
+      icon: Workflow,
+      title: "Pipeline",
+      value: session.status.toUpperCase(),
+      color: "text-amber-300",
+    },
+    {
+      icon: CheckCircle,
+      title: "Response",
+      value: session.response ? "Available" : "Pending",
+      color: "text-lime-300",
+    },
+    {
+      icon: Timer,
+      title: "Execution",
+      value: session.status === "running" ? "Running" : "Idle",
+      color: "text-sky-300",
+    },
+  ];
+
   return (
     <section className="mt-3">
       <div className="grid grid-cols-7 gap-3">
-
-        {cards.map(({ icon: Icon, title, value, sub, color }) => (
-
+        {cards.map(({ icon: Icon, title, value, color }) => (
           <div
             key={title}
             className="ev-card flex h-[118px] flex-col justify-between p-3"
           >
-
             <div className="flex items-center justify-between">
-
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04]">
-                <Icon size={16} className={color} />
-              </div>
-
-              <span className="text-[18px] font-semibold text-white">
+              <Icon size={18} className={color} />
+              <span className="text-sm font-semibold text-white text-right">
                 {value}
               </span>
-
             </div>
 
-            <div>
-
-              <div className="text-[15px] font-semibold leading-5 text-white">
-                {title}
-              </div>
-
-              <div className="mt-1 text-[12px] leading-4 text-white/45 line-clamp-2">
-                {sub}
-              </div>
-
+            <div className="text-sm font-medium text-white/80">
+              {title}
             </div>
-
           </div>
-
         ))}
-
       </div>
     </section>
   );
