@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { KernelService } from "@/services/kernel.service";
+import { connectRuntimeStream } from "@/services/runtime-stream.service";
 import { useExecutionSession } from "@/context/ExecutionSessionContext";
 
 export function useKernel() {
@@ -9,63 +10,41 @@ export function useKernel() {
   const [loading, setLoading] = useState(false);
 
   async function run(message: string) {
-    if (!message.trim()) return null;
+    if (!message.trim() || loading) {
+      return null;
+    }
 
     setLoading(true);
 
-    setSession(prev => ({
+    setSession((prev) => ({
       ...prev,
       objective: message,
       status: "running",
-      currentStage: "Understanding",
       response: "",
       events: [],
     }));
 
-    addEvent("Understanding", "Analyzing objective...");
+    const stream = connectRuntimeStream((event) => {
+      setSession((prev) => ({
+        ...prev,
+        currentStage: event.stage as typeof prev.currentStage,
+      }));
 
-    await new Promise(r => setTimeout(r, 250));
-
-    setSession(prev => ({
-      ...prev,
-      currentStage: "Planning",
-    }));
-
-    addEvent("Planning", "Building execution plan...");
-
-    await new Promise(r => setTimeout(r, 250));
-
-    setSession(prev => ({
-      ...prev,
-      currentStage: "Selecting Agent",
-      selectedAgent: "Chief Agent",
-    }));
-
-    addEvent("Selecting Agent", "Chief Agent selected.");
-
-    await new Promise(r => setTimeout(r, 250));
-
-    setSession(prev => ({
-      ...prev,
-      currentStage: "Executing",
-    }));
-
-    addEvent("Executing", "Executing through Kernel...");
+      addEvent(event.stage, event.message);
+    });
 
     try {
       const result = await KernelService.execute(message);
 
       if (result.success) {
-        setSession(prev => ({
+        setSession((prev) => ({
           ...prev,
           status: "completed",
           currentStage: "Completed",
           response: result.data?.response ?? "",
         }));
-
-        addEvent("Completed", "Execution finished successfully.");
       } else {
-        setSession(prev => ({
+        setSession((prev) => ({
           ...prev,
           status: "failed",
           currentStage: "Failed",
@@ -77,6 +56,7 @@ export function useKernel() {
 
       return result;
     } finally {
+      stream.close();
       setLoading(false);
     }
   }

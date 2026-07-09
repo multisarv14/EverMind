@@ -8,10 +8,15 @@
 
   <ItemGroup>
     <ProjectReference Include="../../packages/core/application/EverMind.Application.csproj" />
-    <ProjectReference Include="..\understanding-engine\EverMind.UnderstandingEngine.csproj" />
-    <ProjectReference Include="..\runtime-stream\EverMind.RuntimeStream.csproj" />
-    <ProjectReference Include="..\..\packages\memory\EverMind.Memory\EverMind.Memory.csproj" />
-    <ProjectReference Include="..\planning-engine\EverMind.PlanningEngine.csproj" />
+
+    <ProjectReference Include="../understanding-engine/EverMind.UnderstandingEngine.csproj" />
+    <ProjectReference Include="../thinking-engine/EverMind.ThinkingEngine.csproj" />
+    <ProjectReference Include="../knowledge-engine/EverMind.KnowledgeEngine.csproj" />
+    <ProjectReference Include="../planning-engine/EverMind.PlanningEngine.csproj" />
+    <ProjectReference Include="../decision-engine/EverMind.DecisionEngine.csproj" />
+
+    <ProjectReference Include="../runtime-stream/EverMind.RuntimeStream.csproj" />
+    <ProjectReference Include="../../packages/memory/EverMind.Memory/EverMind.Memory.csproj" />
   </ItemGroup>
 
 </Project>
