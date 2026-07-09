@@ -2,55 +2,86 @@
 
 import { useExecutionSession } from "@/context/ExecutionSessionContext";
 
+const stages = [
+  "Understanding",
+  "Thinking",
+  "Knowledge",
+  "Planning",
+  "Decision",
+  "Agent",
+  "Memory",
+  "Completed",
+];
+
 export default function ActivityFeed() {
   const { session } = useExecutionSession();
 
+  const completed = new Set(
+    session.events.map((e) => e.title)
+  );
+
   return (
-    <section className="ev-card h-full p-5">
+    <section className="ev-card h-full overflow-y-auto p-5">
+
       <div className="mb-5 flex items-center justify-between">
         <h3 className="text-[18px] font-semibold text-white">
           Runtime Timeline
         </h3>
 
-        <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] text-emerald-300">
+        <span className="rounded-full bg-violet-500/20 px-3 py-1 text-xs text-violet-300">
           {session.currentStage}
         </span>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
 
-        {session.events.length === 0 ? (
-          <div className="text-sm text-white/40">
-            Waiting for execution...
-          </div>
-        ) : (
-          session.events.map((event) => (
+        {stages.map((stage) => {
+          const active = session.currentStage === stage;
+          const done = completed.has(stage);
+
+          return (
             <div
-              key={event.id}
-              className="flex gap-3 border-l border-violet-500/30 pl-4"
+              key={stage}
+              className="flex items-start gap-4"
             >
-              <div className="mt-1 h-2.5 w-2.5 rounded-full bg-violet-400" />
+              <div className="flex flex-col items-center">
+                <div
+                  className={`h-3 w-3 rounded-full ${
+                    active
+                      ? "bg-violet-400 ring-4 ring-violet-500/20"
+                      : done
+                      ? "bg-emerald-400"
+                      : "bg-slate-600"
+                  }`}
+                />
+
+                {stage !== "Completed" && (
+                  <div className="h-10 w-px bg-white/10" />
+                )}
+              </div>
 
               <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-white">
-                    {event.title}
-                  </h4>
-
-                  <span className="text-[11px] text-white/30">
-                    {event.createdAt.toLocaleTimeString()}
-                  </span>
+                <div
+                  className={`font-medium ${
+                    active
+                      ? "text-violet-300"
+                      : done
+                      ? "text-white"
+                      : "text-white/40"
+                  }`}
+                >
+                  {stage}
                 </div>
 
-                {event.description && (
-                  <p className="mt-1 text-sm text-white/55">
-                    {event.description}
-                  </p>
+                {active && (
+                  <div className="mt-1 text-sm text-white/60">
+                    Executing...
+                  </div>
                 )}
               </div>
             </div>
-          ))
-        )}
+          );
+        })}
 
       </div>
     </section>

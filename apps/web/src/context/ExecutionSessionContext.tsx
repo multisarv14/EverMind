@@ -24,9 +24,12 @@ export interface ExecutionEvent {
 export type RuntimeStage =
   | "Idle"
   | "Understanding"
+  | "Thinking"
+  | "Knowledge"
   | "Planning"
-  | "Selecting Agent"
-  | "Executing"
+  | "Decision"
+  | "Agent"
+  | "Memory"
   | "Completed"
   | "Failed";
 
