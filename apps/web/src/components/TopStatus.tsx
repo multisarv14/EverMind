@@ -1,61 +1,99 @@
 "use client";
 
-import { Activity, Bot, Brain, Sparkles } from "lucide-react";
+import {
+  Bell,
+  Bot,
+  CircleDot,
+  Cpu,
+  FolderOpen,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const cards = [
+export interface TopStatusMetric {
+  key: "system-status" | "active-agent" | "runtime-stage" | "events-today" | "memory-usage";
+  title: string;
+  value: string;
+  subValue?: string;
+  icon: LucideIcon;
+  accentClassName: string;
+}
+
+export const defaultTopStatusMetrics: readonly TopStatusMetric[] = [
   {
+    key: "system-status",
     title: "System Status",
-    value: "Optimal",
-    dot: "bg-emerald-400",
-    Icon: Activity,
+    value: "Online",
+    icon: CircleDot,
+    accentClassName: "text-emerald-400",
   },
   {
-    title: "AI Confidence",
-    value: "98%",
-    dot: "bg-violet-400",
-    Icon: Sparkles,
+    key: "active-agent",
+    title: "Active Agent",
+    value: "Chief Agent",
+    icon: Bot,
+    accentClassName: "text-violet-300",
   },
   {
-    title: "Company Memory",
-    value: "Learning",
-    dot: "bg-sky-400",
-    Icon: Brain,
+    key: "runtime-stage",
+    title: "Runtime Stage",
+    value: "Idle",
+    icon: FolderOpen,
+    accentClassName: "text-white/70",
   },
   {
-    title: "Active Agents",
-    value: "12",
-    dot: "bg-emerald-400",
-    Icon: Bot,
+    key: "events-today",
+    title: "Events Today",
+    value: "24",
+    icon: Bell,
+    accentClassName: "text-white/70",
+  },
+  {
+    key: "memory-usage",
+    title: "Memory Usage",
+    value: "28%",
+    subValue: "",
+    icon: Cpu,
+    accentClassName: "text-violet-300",
   },
 ];
 
-export default function TopStatus() {
-  
-  return (
-    <div className="grid grid-cols-4 gap-4">
-      {cards.map(({ title, value, dot, Icon }) => (
-        <div
-          key={title}
-          className="rounded-xl border border-white/8 bg-white/[0.04] backdrop-blur-2xl px-4 py-3"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-[11px] uppercase tracking-wider text-white/45">
-                {title}
-              </div>
+interface TopStatusProps {
+  metrics?: readonly TopStatusMetric[];
+}
 
-              <div className="mt-2 flex items-center gap-2">
-                <span className={`h-2 w-2 rounded-full ${dot}`} />
-                <span className="text-sm font-medium text-white">
-                  {value}
-                </span>
-              </div>
+export default function TopStatus({
+  metrics = defaultTopStatusMetrics,
+}: TopStatusProps) {
+  return (
+    <section className="h-[56px] shrink-0">
+
+      <div className="grid h-[56px] grid-cols-5 gap-3">
+        {metrics.map(({ key, title, value, subValue, icon: Icon, accentClassName }) => (
+          <article
+            key={key}
+            className="flex h-[56px] min-w-0 items-center gap-2 rounded-xl border border-white/10 bg-[#0a1020] px-2.5"
+          >
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/[0.02]">
+              <Icon size={12} className={accentClassName} />
             </div>
 
-            <Icon size={18} className="text-white/35" />
-          </div>
-        </div>
-      ))}
-    </div>
+            <div className="min-w-0">
+              <p className="truncate text-[9px] font-medium uppercase tracking-[0.08em] text-white/45">
+                {title}
+              </p>
+
+              <p className="truncate text-[12px] font-medium leading-4 text-white">
+                {value}
+              </p>
+
+              {typeof subValue === "string" && subValue.length > 0 && (
+                <p className="truncate text-[10px] text-white/45">{subValue}</p>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+
+    </section>
   );
 }
