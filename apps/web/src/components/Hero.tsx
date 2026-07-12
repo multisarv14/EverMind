@@ -7,8 +7,8 @@ export default function Hero() {
   const [message, setMessage] = useState("");
   const { loading, run } = useKernel();
 
-  async function execute() {
-    const prompt = message.trim();
+  async function executePrompt(rawPrompt: string) {
+    const prompt = rawPrompt.trim();
 
     if (!prompt || loading) return;
 
@@ -19,6 +19,15 @@ export default function Hero() {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  async function execute() {
+    await executePrompt(message);
+  }
+
+  async function executeGreetingAction(action: string) {
+    setMessage(action);
+    await executePrompt(action);
   }
 
   return (
@@ -60,6 +69,8 @@ export default function Hero() {
             ].map((item) => (
               <button
                 key={item}
+                onClick={() => executeGreetingAction(item)}
+                disabled={loading}
                 className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/70 transition hover:border-violet-400/30 hover:bg-violet-500/10"
               >
                 {item}
