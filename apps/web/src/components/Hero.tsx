@@ -17,12 +17,21 @@ export default function Hero() {
   const [message, setMessage] = useState("");
   const { loading, run } = useKernel();
 
-  async function execute() {
-    const prompt = message.trim();
+  async function executePrompt(rawPrompt: string) {
+    const prompt = rawPrompt.trim();
     if (!prompt || loading) return;
 
     await run(prompt);
     setMessage("");
+  }
+
+  async function execute() {
+    await executePrompt(message);
+  }
+
+  async function executeGreetingAction(action: string) {
+    setMessage(action);
+    await executePrompt(action);
   }
 
   return (
@@ -58,7 +67,8 @@ export default function Hero() {
           {suggestions.map((item) => (
             <button
               key={item}
-              onClick={() => setMessage(item)}
+              onClick={() => executeGreetingAction(item)}
+              disabled={loading}
               className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70 hover:border-violet-500 hover:text-white"
             >
               {item}
