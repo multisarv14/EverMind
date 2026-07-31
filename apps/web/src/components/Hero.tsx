@@ -1,157 +1,84 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ArrowUpRight,
-  Command,
-  Search,
-  Sparkles,
-} from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { useKernel } from "@/hooks/useKernel";
 
-export interface HeroQuickAction {
-  key: string;
-  label: string;
-  value: string;
-}
-
-export interface HeroCopy {
-  greeting: string;
-  subtitle: string;
-  placeholder: string;
-  executeLabel: string;
-}
-
-export const defaultHeroCopy: HeroCopy = {
-  greeting: "Good Morning, Ramdas",
-  subtitle: "EverMind is online and ready to execute.",
-  placeholder: "Give me an objective or ask anything...",
-  executeLabel: "Execute",
-};
-
-export const defaultHeroQuickActions: readonly HeroQuickAction[] = [
-  {
-    key: "launch-saas",
-    label: "Launch a SaaS product",
-    value: "Launch a SaaS product",
-  },
-  {
-    key: "analyze-trends",
-    label: "Analyze market trends",
-    value: "Analyze market trends",
-  },
-  {
-    key: "create-strategy",
-    label: "Create business strategy",
-    value: "Create business strategy",
-  },
-  {
-    key: "prepare-pitch",
-    label: "Prepare pitch deck",
-    value: "Prepare pitch deck",
-  },
-  {
-    key: "research-competitors",
-    label: "Research competitors",
-    value: "Research competitors",
-  },
+const suggestions = [
+  "Launch a SaaS product",
+  "Research competitors",
+  "Prepare investor pitch",
+  "Plan marketing campaign",
+  "Create project roadmap",
+  "Analyze business risks",
 ];
 
-interface HeroProps {
-  copy?: HeroCopy;
-  quickActions?: readonly HeroQuickAction[];
-}
-
-export default function Hero({
-  copy = defaultHeroCopy,
-  quickActions = defaultHeroQuickActions,
-}: HeroProps) {
+export default function Hero() {
   const [message, setMessage] = useState("");
   const { loading, run } = useKernel();
 
-  async function execute(promptText?: string) {
-    const prompt = (promptText ?? message).trim();
-
+  async function execute() {
+    const prompt = message.trim();
     if (!prompt || loading) return;
 
-    try {
-      const result = await run(prompt);
-
-      console.log("Kernel Response:", result);
-    } catch (err) {
-      console.error(err);
-    }
+    await run(prompt);
+    setMessage("");
   }
 
   return (
-    <section className="mt-1">
-      <h2 className="text-[24px] font-semibold text-white">
-        {copy.greeting} <span className="text-[20px]">👋</span>
-      </h2>
+    <section className="mt-2">
 
-      <p className="mt-1 text-[14px] leading-5 text-white/65">
-        {copy.subtitle}
+      <div className="mb-4 flex items-center gap-2 text-violet-300">
+        <Sparkles size={18} />
+        <span className="text-sm font-medium">
+          AI Executive Command Center
+        </span>
+      </div>
+
+      <h1 className="bg-gradient-to-r from-sky-400 via-violet-400 to-fuchsia-400 bg-clip-text text-5xl font-bold text-transparent">
+        EverMind
+      </h1>
+
+      <p className="mt-3 max-w-3xl text-white/60">
+        Give me an objective. I will understand it, think,
+        research, plan, decide, execute and remember.
       </p>
 
-      <form
-        className="mt-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void execute();
-        }}
-      >
-        <div className="flex h-[52px] items-center gap-3 rounded-xl border border-violet-400/25 bg-[#090f1f] px-4 shadow-[0_0_20px_rgba(113,72,255,0.2)]">
-          <Search size={16} className="text-white/45" />
+      <div className="mt-6 rounded-3xl border border-violet-500/20 bg-[#0b0f1c] p-6">
 
-          <input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder={copy.placeholder}
-            className="h-full w-full bg-transparent text-[15px] text-white outline-none placeholder:text-white/35"
-          />
+        <textarea
+          rows={3}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Describe your objective..."
+          className="w-full resize-none bg-transparent text-lg text-white outline-none placeholder:text-white/30"
+        />
 
-          <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-2 py-1 text-[12px] text-white/55">
-            <Command size={13} className="text-white/45" />
-            <span>+ ↵</span>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="inline-flex h-9 min-w-[96px] items-center justify-center rounded-[10px] bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 text-[13px] font-medium text-white transition hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-50"
-            title={copy.executeLabel}
-          >
-            {loading ? "Running..." : copy.executeLabel}
-          </button>
-        </div>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          {quickActions.map((item) => (
+        <div className="mt-5 flex flex-wrap gap-2">
+          {suggestions.map((item) => (
             <button
-              key={item.key}
-              type="button"
-              onClick={() => setMessage(item.value)}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-[12px] text-white/65 transition hover:border-violet-400/30 hover:bg-violet-500/10 hover:text-white"
+              key={item}
+              onClick={() => setMessage(item)}
+              className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70 hover:border-violet-500 hover:text-white"
             >
-              <Sparkles size={14} className="text-white/45" />
-              <span>{item.label}</span>
+              {item}
             </button>
           ))}
+        </div>
 
+        <div className="mt-6 flex justify-end">
           <button
-            type="button"
-            onClick={() => {
-              if (message.trim().length > 0) {
-                void execute();
-              }
-            }}
-            className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-[12px] text-violet-300 transition hover:bg-violet-500/10"
+            disabled={loading}
+            onClick={execute}
+            className="flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-white hover:bg-violet-500 disabled:opacity-50"
           >
-            <span>Run</span>
-            <ArrowUpRight size={14} />
+            Execute
+            <ArrowRight size={18} />
           </button>
         </div>
-      </form>
+
+      </div>
+
     </section>
   );
 }

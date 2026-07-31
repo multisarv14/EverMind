@@ -23,6 +23,8 @@
     <ProjectReference Include="..\..\agents\research\EverMind.ResearchAgent.csproj" />
     <ProjectReference Include="..\..\agents\documentation\EverMind.DocumentationAgent.csproj" />
     <ProjectReference Include="..\..\agents\testing\EverMind.TestingAgent.csproj" />
+    <ProjectReference Include="..\..\services\runtime-stream\EverMind.RuntimeStream.csproj" />
+    <ProjectReference Include="..\..\services\planning-engine\EverMind.PlanningEngine.csproj" />
   </ItemGroup>
 
 </Project>

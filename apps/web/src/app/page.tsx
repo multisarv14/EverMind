@@ -5,8 +5,6 @@ import KPISection from "@/components/KPISection";
 import CapabilitySection from "@/components/CapabilitySection";
 import ActivityFeed from "@/components/ActivityFeed";
 import AIPanel from "@/components/AIPanel";
-import RecentObjectives from "@/components/RecentObjectives";
-import PerformanceOverview from "@/components/PerformanceOverview";
 
 export default function Home() {
   return (
@@ -14,51 +12,34 @@ export default function Home() {
 
       <Sidebar />
 
-      <section className="flex-1 min-w-0 overflow-hidden p-3">
+      <section className="flex-1 overflow-hidden">
 
-        <div className="flex h-full flex-col gap-3">
+        <div className="mx-auto flex h-full max-w-[1700px] gap-4 p-4">
 
-          <TopStatus />
+          <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-hidden">
 
-          <Hero />
+            <TopStatus />
 
-          <KPISection />
+            <Hero />
 
-          <div className="min-h-0 overflow-y-auto pr-1">
-            <div className="grid gap-3 pb-3">
+            <KPISection />
 
-              <div className="grid grid-cols-[1.05fr_0.95fr] gap-3">
+            <div className="grid min-h-0 flex-1 grid-cols-[1.1fr_0.9fr] gap-4">
 
-                <div>
-                  <CapabilitySection />
-                </div>
+              <CapabilitySection />
 
-                <div>
-                  <ActivityFeed />
-                </div>
-
-              </div>
-
-              <div className="grid grid-cols-[0.9fr_1.1fr] gap-3">
-
-                <div>
-                  <RecentObjectives />
-                </div>
-
-                <div>
-                  <PerformanceOverview />
-                </div>
-
-              </div>
+              <ActivityFeed />
 
             </div>
+
           </div>
+
+          <AIPanel />
 
         </div>
 
       </section>
 
-      <AIPanel />
     </main>
   );
 }

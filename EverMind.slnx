@@ -73,6 +73,12 @@
   <Folder Name="/services/planning-engine/">
     <Project Path="services/planning-engine/EverMind.PlanningEngine.csproj" />
   </Folder>
+  <Folder Name="/services/runtime-stream/">
+    <Project Path="services/runtime-stream/EverMind.RuntimeStream.csproj" />
+  </Folder>
+  <Folder Name="/services/thinking-engine/">
+    <Project Path="services/thinking-engine/EverMind.ThinkingEngine.csproj" />
+  </Folder>
   <Folder Name="/services/understanding-engine/">
     <Project Path="services/understanding-engine/EverMind.UnderstandingEngine.csproj" />
   </Folder>
