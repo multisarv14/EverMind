@@ -12,40 +12,33 @@ export default function Home() {
 
       <Sidebar />
 
-      <section className="flex-1 min-w-0 p-4">
+      <section className="flex-1 overflow-hidden">
 
-        <div
-          className="
-            grid
-            h-full
-            gap-3
-            grid-rows-[72px_auto_auto_minmax(0,1fr)]
-          "
-        >
+        <div className="mx-auto flex h-full max-w-[1700px] gap-4 p-4">
 
-          <TopStatus />
+          <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-hidden">
 
-          <Hero />
+            <TopStatus />
 
-          <KPISection />
+            <Hero />
 
-          <div className="grid min-h-0 grid-cols-[1.05fr_0.95fr] gap-3">
+            <KPISection />
 
-            <div className="min-h-0">
+            <div className="grid min-h-0 flex-1 grid-cols-[1.1fr_0.9fr] gap-4">
+
               <CapabilitySection />
-            </div>
 
-            <div className="min-h-0">
               <ActivityFeed />
+
             </div>
 
           </div>
 
+          <AIPanel />
+
         </div>
 
       </section>
-
-      <AIPanel />
 
     </main>
   );

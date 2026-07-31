@@ -4,10 +4,17 @@ namespace EverMind.DecisionEngine;
 
 public sealed class DecisionEngine : IDecisionEngine
 {
-    public async Task DecideAsync(
+    public Task DecideAsync(
         IKernelContext context,
         CancellationToken cancellationToken = default)
     {
-        await Task.CompletedTask;
+        context.Items["Decision"] = new Dictionary<string, object>
+        {
+            ["Status"] = "Completed",
+            ["Timestamp"] = DateTime.UtcNow,
+            ["Decision"] = "Execution approved."
+        };
+
+        return Task.CompletedTask;
     }
 }
