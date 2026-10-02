@@ -1,86 +1,46 @@
 import {
-  Brain,
-  Search,
-  Database,
-  Workflow,
-  Scale,
-  Bot,
-  MemoryStick,
-  CheckCircle,
+  ScanSearch,
+  ClipboardList,
+  Code,
+  ShieldCheck,
+  Rocket,
+  Activity,
+  TrendingUp,
+  Sparkles,
 } from "lucide-react";
 
 const items = [
-  {
-    icon: Search,
-    title: "Understanding",
-    desc: "Analyze objectives and identify intent.",
-  },
-  {
-    icon: Brain,
-    title: "Thinking",
-    desc: "Reason through objectives before execution.",
-  },
-  {
-    icon: Database,
-    title: "Knowledge",
-    desc: "Retrieve relevant business knowledge.",
-  },
-  {
-    icon: Workflow,
-    title: "Planning",
-    desc: "Generate an execution strategy.",
-  },
-  {
-    icon: Scale,
-    title: "Decision",
-    desc: "Choose the best execution path.",
-  },
-  {
-    icon: Bot,
-    title: "Agent Routing",
-    desc: "Select the most suitable AI agent.",
-  },
-  {
-    icon: MemoryStick,
-    title: "Memory",
-    desc: "Store outcomes for continuous learning.",
-  },
-  {
-    icon: CheckCircle,
-    title: "Execution",
-    desc: "Execute, validate and complete objectives.",
-  },
+  { icon: ScanSearch, tone: "text-sky-400 bg-sky-500/15", title: "Understand", text: "Deeply understand business, users, market" },
+  { icon: ClipboardList, tone: "text-emerald-400 bg-emerald-500/15", title: "Plan", text: "Create strategy, roadmap, architecture, tasks" },
+  { icon: Code, tone: "text-blue-400 bg-blue-500/15", title: "Build", text: "Design, code, integrate, and develop" },
+  { icon: ShieldCheck, tone: "text-orange-400 bg-orange-500/15", title: "Test", text: "QA, test cases, automation" },
+  { icon: Rocket, tone: "text-violet-400 bg-violet-500/15", title: "Deploy", text: "Setup infra, CI/CD, deploy live" },
+  { icon: Activity, tone: "text-sky-400 bg-sky-500/15", title: "Monitor", text: "Monitor systems, errors, performance" },
+  { icon: TrendingUp, tone: "text-emerald-400 bg-emerald-500/15", title: "Scale", text: "Optimize, scale, improve" },
+  { icon: Sparkles, tone: "text-violet-300 bg-violet-500/15", title: "Learn", text: "Remember everything, get smarter daily" },
 ];
 
 export default function CapabilitySection() {
   return (
-    <section className="ev-card h-full p-5">
+    <section className="flex min-h-0 flex-col rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+      <h3 className="text-[14px] font-semibold text-white">EverMind Capabilities</h3>
 
-      <h3 className="mb-4 text-[18px] font-semibold text-white">
-        EverMind Runtime Pipeline
-      </h3>
-
-      <div className="grid h-[calc(100%-36px)] grid-cols-4 gap-3">
-
-        {items.map(({ icon: Icon, title, desc }) => (
+      <div className="mt-3 grid min-h-0 flex-1 grid-cols-4 gap-2">
+        {items.map(({ icon: Icon, tone, title, text }) => (
           <div
             key={title}
-            className="rounded-xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-violet-500/30"
+            className="flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] p-2.5"
           >
-            <Icon size={20} className="mb-3 text-violet-300" />
-
-            <div className="text-sm font-semibold text-white">
-              {title}
-            </div>
-
-            <div className="mt-2 text-xs leading-5 text-white/50">
-              {desc}
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${tone}`}>
+              <Icon size={17} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[12px] font-semibold text-white">{title}</p>
+              <p className="mt-0.5 line-clamp-3 text-[10px] leading-snug text-white/60">{text}</p>
             </div>
           </div>
         ))}
-
       </div>
-
     </section>
   );
 }

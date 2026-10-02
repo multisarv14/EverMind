@@ -74,10 +74,21 @@ async (HttpContext context, IRuntimeStream runtime) =>
     context.Response.Headers.Append("Cache-Control", "no-cache");
 
     var sent = 0;
+    DateTime? runId = null;
 
     while (!context.RequestAborted.IsCancellationRequested)
     {
         var events = runtime.Events;
+
+        // The orchestrator clears events at the start of every run; a run is
+        // identified by the timestamp of its first event.
+        DateTime? currentRun = events.Count > 0 ? events[0].Timestamp : null;
+
+        if (events.Count < sent || currentRun != runId)
+        {
+            sent = 0;
+            runId = currentRun;
+        }
 
         while (sent < events.Count)
         {

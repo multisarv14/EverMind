@@ -1,89 +1,65 @@
 "use client";
 
-import { useExecutionSession } from "@/context/ExecutionSessionContext";
+import Link from "next/link";
+import { useApi, timeAgo, type ConversationSummary } from "@/lib/useApi";
 
-const stages = [
-  "Understanding",
-  "Thinking",
-  "Knowledge",
-  "Planning",
-  "Decision",
-  "Agent",
-  "Memory",
-  "Completed",
+const initial = [
+  { title: "System initialized and ready", text: "EverMind is online and learning about your goals", dot: "bg-blue-500" },
+  { title: "AI team activated", text: "12 agents are online and at your service", dot: "bg-emerald-400" },
+  { title: "Waiting for your command", text: "Tell me what you want to accomplish", dot: "bg-pink-500" },
 ];
 
 export default function ActivityFeed() {
-  const { session } = useExecutionSession();
+  const { data } = useApi<{ conversations: ConversationSummary[] }>("/api/conversations");
 
-  const completed = new Set(
-    session.events.map((e) => e.title)
-  );
+  const live = (data?.conversations ?? []).slice(0, 4).map((c) => ({
+    title: c.title,
+    text: c.preview || "Conversation started",
+    dot: "bg-violet-400",
+    when: timeAgo(c.updatedAt),
+    href: `/chat/${c.id}`,
+  }));
+
+  const rows = [
+    ...live,
+    ...initial.map((i) => ({ ...i, when: "Just now", href: "" })),
+  ].slice(0, 4);
 
   return (
-    <section className="ev-card h-full overflow-y-auto p-5">
-
-      <div className="mb-5 flex items-center justify-between">
-        <h3 className="text-[18px] font-semibold text-white">
-          Runtime Timeline
-        </h3>
-
-        <span className="rounded-full bg-violet-500/20 px-3 py-1 text-xs text-violet-300">
-          {session.currentStage}
+    <section className="flex min-h-0 flex-col rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-[14px] font-semibold text-white">EverMind Activity Feed</h3>
+        <span className="flex items-center gap-1.5 text-[11px] text-emerald-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          Live
         </span>
       </div>
 
-      <div className="space-y-5">
-
-        {stages.map((stage) => {
-          const active = session.currentStage === stage;
-          const done = completed.has(stage);
-
+      <ul className="mt-3 min-h-0 flex-1 space-y-3 overflow-hidden">
+        {rows.map((r, i) => {
+          const body = (
+            <>
+              <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${r.dot}`} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[12px] font-medium text-white">{r.title}</p>
+                <p className="truncate text-[10px] text-white/55">{r.text}</p>
+              </div>
+              <span className="shrink-0 text-[10px] text-white/50">{r.when}</span>
+            </>
+          );
           return (
-            <div
-              key={stage}
-              className="flex items-start gap-4"
-            >
-              <div className="flex flex-col items-center">
-                <div
-                  className={`h-3 w-3 rounded-full ${
-                    active
-                      ? "bg-violet-400 ring-4 ring-violet-500/20"
-                      : done
-                      ? "bg-emerald-400"
-                      : "bg-slate-600"
-                  }`}
-                />
-
-                {stage !== "Completed" && (
-                  <div className="h-10 w-px bg-white/10" />
-                )}
-              </div>
-
-              <div className="flex-1">
-                <div
-                  className={`font-medium ${
-                    active
-                      ? "text-violet-300"
-                      : done
-                      ? "text-white"
-                      : "text-white/40"
-                  }`}
-                >
-                  {stage}
-                </div>
-
-                {active && (
-                  <div className="mt-1 text-sm text-white/60">
-                    Executing...
-                  </div>
-                )}
-              </div>
-            </div>
+            <li key={`${r.title}-${i}`}>
+              {r.href ? (
+                <Link href={r.href} className="flex items-start gap-3 hover:opacity-80">
+                  {body}
+                </Link>
+              ) : (
+                <div className="flex items-start gap-3">{body}</div>
+              )}
+            </li>
           );
         })}
-
-      </div>
+      </ul>
     </section>
   );
 }

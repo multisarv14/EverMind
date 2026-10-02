@@ -1,86 +1,36 @@
 "use client";
 
-import {
-  Brain,
-  Activity,
-  Database,
-  CheckCircle,
-  Cpu,
-  Workflow,
-  Timer,
-} from "lucide-react";
+import { useApi, type ConversationSummary } from "@/lib/useApi";
+import { Target, Code, ListChecks, GitBranch, FileText, Brain } from "lucide-react";
 
-import { useExecutionSession } from "@/context/ExecutionSessionContext";
+const kpis = [
+  { icon: Target, tone: "text-violet-400 bg-violet-500/15", value: 0, title: "Active Initiatives", note: "No initiatives yet" },
+  { icon: Code, tone: "text-sky-400 bg-sky-500/15", value: 0, title: "Projects", note: "Created by your team" },
+  { icon: ListChecks, tone: "text-emerald-400 bg-emerald-500/15", value: 0, title: "Tasks", note: "No tasks yet" },
+  { icon: GitBranch, tone: "text-orange-400 bg-orange-500/15", value: 0, title: "Decisions", note: "No decisions yet" },
+  { icon: FileText, tone: "text-violet-300 bg-violet-500/15", value: 0, title: "Documents", note: "No documents yet" },
+  { icon: Brain, tone: "text-pink-400 bg-pink-500/15", value: 0, title: "Memory", note: "Conversations remembered" },
+];
 
 export default function KPISection() {
-  const { session } = useExecutionSession();
-
-  const cards = [
-    {
-      icon: Activity,
-      title: "Runtime Events",
-      value: session.events.length,
-      color: "text-violet-300",
-    },
-    {
-      icon: Brain,
-      title: "Current Stage",
-      value: session.currentStage,
-      color: "text-cyan-300",
-    },
-    {
-      icon: Cpu,
-      title: "Active Agent",
-      value: session.selectedAgent || "Chief Agent",
-      color: "text-emerald-300",
-    },
-    {
-      icon: Database,
-      title: "Memory",
-      value: "Ready",
-      color: "text-pink-300",
-    },
-    {
-      icon: Workflow,
-      title: "Pipeline",
-      value: session.status.toUpperCase(),
-      color: "text-amber-300",
-    },
-    {
-      icon: CheckCircle,
-      title: "Response",
-      value: session.response ? "Available" : "Pending",
-      color: "text-lime-300",
-    },
-    {
-      icon: Timer,
-      title: "Execution",
-      value: session.status === "running" ? "Running" : "Idle",
-      color: "text-sky-300",
-    },
-  ];
+  const { data } = useApi<{ conversations: ConversationSummary[] }>("/api/conversations");
+  const remembered = data?.conversations.length ?? 0;
+  const projectCount = useApi<{ projects: unknown[] }>("/api/projects").data?.projects.length ?? 0;
 
   return (
-    <section className="mt-3">
-      <div className="grid grid-cols-7 gap-3">
-        {cards.map(({ icon: Icon, title, value, color }) => (
-          <div
-            key={title}
-            className="ev-card flex h-[118px] flex-col justify-between p-3"
-          >
-            <div className="flex items-center justify-between">
-              <Icon size={18} className={color} />
-              <span className="text-sm font-semibold text-white text-right">
-                {value}
-              </span>
-            </div>
-
-            <div className="text-sm font-medium text-white/80">
-              {title}
-            </div>
+    <section className="grid grid-cols-6 rounded-2xl border border-white/[0.07] bg-white/[0.025] py-3">
+      {kpis.map(({ icon: Icon, tone, value, title, note }) => (
+        <div key={title} className="border-r border-white/[0.05] px-4 last:border-r-0">
+          <div className="flex items-center gap-3">
+            <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${tone}`}>
+              <Icon size={19} />
+            </span>
+            <span className="text-[22px] font-medium text-white">{title === "Memory" ? remembered : title === "Projects" ? projectCount : value}</span>
           </div>
-        ))}
-      </div>
+          <p className="mt-2 text-[13px] font-medium text-white">{title}</p>
+          <p className="text-[11px] leading-tight text-white/55">{note}</p>
+        </div>
+      ))}
     </section>
   );
 }

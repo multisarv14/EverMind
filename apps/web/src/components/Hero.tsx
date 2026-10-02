@@ -1,94 +1,91 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, ArrowRight } from "lucide-react";
-import { useKernel } from "@/hooks/useKernel";
+import { useRouter } from "next/navigation";
+import {
+  ArrowUp,
+  ClipboardList,
+  Lightbulb,
+  Scale,
+  ScanSearch,
+  Search,
+  Sparkles,
+} from "lucide-react";
 
 const suggestions = [
-  "Launch a SaaS product",
-  "Research competitors",
-  "Prepare investor pitch",
-  "Plan marketing campaign",
-  "Create project roadmap",
-  "Analyze business risks",
+  { icon: ClipboardList, label: "Plan something" },
+  { icon: Lightbulb, label: "Solve a problem" },
+  { icon: Scale, label: "Make a decision" },
+  { icon: ScanSearch, label: "Analyze this" },
+  { icon: Search, label: "Research" },
+  { icon: Sparkles, label: "Create anything" },
 ];
 
 export default function Hero() {
   const [message, setMessage] = useState("");
-  const { loading, run } = useKernel();
+  const router = useRouter();
 
-  async function executePrompt(rawPrompt: string) {
-    const prompt = rawPrompt.trim();
-    if (!prompt || loading) return;
-
-    await run(prompt);
-    setMessage("");
-  }
-
-  async function execute() {
-    await executePrompt(message);
-  }
-
-  async function executeGreetingAction(action: string) {
-    setMessage(action);
-    await executePrompt(action);
+  function execute(raw: string) {
+    const prompt = raw.trim();
+    if (!prompt) return;
+    router.push(`/chat?q=${encodeURIComponent(prompt)}`);
   }
 
   return (
-    <section className="mt-2">
-
-      <div className="mb-4 flex items-center gap-2 text-violet-300">
-        <Sparkles size={18} />
-        <span className="text-sm font-medium">
-          AI Executive Command Center
-        </span>
-      </div>
-
-      <h1 className="bg-gradient-to-r from-sky-400 via-violet-400 to-fuchsia-400 bg-clip-text text-5xl font-bold text-transparent">
-        EverMind
+    <section>
+      <h1 className="text-[34px] font-semibold leading-tight text-white">
+        Good morning, CEO <span>👋</span>
       </h1>
-
-      <p className="mt-3 max-w-3xl text-white/60">
-        Give me an objective. I will understand it, think,
-        research, plan, decide, execute and remember.
+      <p className="bg-gradient-to-r from-sky-400 via-violet-400 to-violet-500 bg-clip-text text-[36px] font-bold leading-tight text-transparent">
+        I&apos;m EverMind.
+      </p>
+      <p className="mt-2 text-[14px] leading-snug text-white/70">
+        I run your company. I plan, decide, execute and deliver.
+        <br />
+        You focus on the vision. I handle everything else.
       </p>
 
-      <div className="mt-6 rounded-3xl border border-violet-500/20 bg-[#0b0f1c] p-6">
+      <div className="mt-4 rounded-2xl border-2 border-violet-500/70 bg-[#0a0c1c] px-5 pb-3 pt-4 shadow-[0_0_28px_rgba(124,92,255,.35)]">
+        <p className="text-[15px] text-white/90">What would you like to accomplish?</p>
 
-        <textarea
-          rows={3}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Describe your objective..."
-          className="w-full resize-none bg-transparent text-lg text-white outline-none placeholder:text-white/30"
-        />
-
-        <div className="mt-5 flex flex-wrap gap-2">
-          {suggestions.map((item) => (
-            <button
-              key={item}
-              onClick={() => executeGreetingAction(item)}
-              disabled={loading}
-              className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70 hover:border-violet-500 hover:text-white"
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-6 flex justify-end">
+        <div className="relative mt-1">
+          <textarea
+            rows={2}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                execute(message);
+              }
+            }}
+            placeholder="Tell me anything..."
+            className="w-full resize-none bg-transparent pr-14 text-[14px] text-white outline-none placeholder:text-white/40"
+          />
           <button
-            disabled={loading}
-            onClick={execute}
-            className="flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-white hover:bg-violet-500 disabled:opacity-50"
+            onClick={() => execute(message)}
+            aria-label="Execute"
+            className="absolute bottom-1 right-0 flex h-10 w-10 items-center justify-center rounded-full bg-violet-600 text-white shadow-[0_0_16px_rgba(124,92,255,.6)] transition hover:bg-violet-500 "
           >
-            Execute
-            <ArrowRight size={18} />
+            <ArrowUp size={18} />
           </button>
         </div>
 
+        <div className="mt-2 flex flex-wrap gap-2 border-t border-white/[0.08] pt-3">
+          {suggestions.map(({ icon: Icon, label }) => (
+            <button
+              key={label}
+              onClick={() => execute(label)}
+                className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[12px] text-white/80 transition hover:border-violet-500/60 hover:text-white "
+            >
+              <Icon size={13} className="text-white/60" />
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
+      <p className="mt-3 text-[12px] text-white/60">I&apos;ll understand, plan and execute across your entire company.</p>
     </section>
   );
 }
