@@ -15,7 +15,7 @@ interface Team {
 
 const card = "rounded-2xl border border-white/[0.07] bg-white/[0.025]";
 const select =
-  "rounded-lg border border-white/10 bg-[#0a0c1c] px-2.5 py-1.5 text-[13px] text-white outline-none focus:border-violet-500/70";
+  "rounded-lg border border-white/10 bg-[var(--card-bg)] px-2.5 py-1.5 text-[13px] text-white outline-none focus:border-violet-500/70";
 
 export default function PeoplePage() {
   const me = useApi<Me>("/api/auth/me").data;

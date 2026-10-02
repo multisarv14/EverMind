@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function UserMenu({ name, subtitle }: { name: string; subtitle: string }) {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function UserMenu({ name, subtitle }: { name: string; subtitle: s
         <p className="truncate text-[13px] font-medium text-white">{name}</p>
         <p className="truncate text-[11px] text-white/50">{subtitle}</p>
       </div>
+      <ThemeToggle className="!h-8 !w-8 shrink-0" />
       <button onClick={logout} aria-label="Log out" title="Log out" className="text-white/50 hover:text-white">
         <LogOut size={16} />
       </button>

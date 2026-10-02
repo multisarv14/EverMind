@@ -36,7 +36,7 @@ export default function HeroPreview() {
   const typing = shown < full.length;
 
   return (
-    <div className="mx-auto mt-14 max-w-[820px] rounded-2xl border border-violet-500/30 bg-[#0a0c1c]/90 p-5 text-left shadow-[0_0_70px_rgba(124,92,255,.28)] backdrop-blur">
+    <div className="mx-auto mt-14 max-w-[820px] rounded-2xl border border-violet-500/30 bg-[color-mix(in_srgb,var(--card-bg)_90%,transparent)] p-5 text-left shadow-[0_0_70px_rgba(124,92,255,.28)] backdrop-blur">
       <div className="mb-4 flex items-center justify-between text-[12px] text-white/40">
         <span>Example conversation</span>
         <span className="flex gap-1.5">

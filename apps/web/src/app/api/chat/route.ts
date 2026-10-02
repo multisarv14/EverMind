@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { ObjectId } from "mongodb";
-import { conversations, projects, type ChatMessage } from "@/lib/db";
+import { conversations, knowledge, projects, type ChatMessage } from "@/lib/db";
+import { AGENT_PERSONAS } from "@/lib/agentPersonas";
 import { currentSession } from "@/lib/auth";
 import { can } from "@/constants/team";
 import { planOf } from "@/lib/plans";
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
   const text = String(body.message ?? "").trim();
   const conversationId = typeof body.conversationId === "string" ? body.conversationId : "";
   const requestedProject = typeof body.projectId === "string" ? body.projectId : "";
+  const requestedAgent = typeof body.agent === "string" && body.agent in AGENT_PERSONAS ? body.agent : "";
 
   if (!text) return json({ error: "Message is empty." }, 400);
   if (text.length > MAX_MESSAGE_CHARS) return json({ error: "Message is too long." }, 400);
@@ -57,6 +59,7 @@ export async function POST(request: Request) {
   let id: ObjectId;
   let history: ChatMessage[];
   let projectId: ObjectId | undefined;
+  let agentId = "";
 
   if (conversationId) {
     if (!ObjectId.isValid(conversationId)) return json({ error: "Not found." }, 404);
@@ -65,6 +68,7 @@ export async function POST(request: Request) {
     id = existing._id;
     history = existing.messages;
     projectId = existing.projectId;
+    agentId = existing.agent ?? "";
     await col.updateOne({ _id: id }, { $push: { messages: userMessage }, $set: { updatedAt: now } });
   } else {
     if (requestedProject) {
@@ -77,9 +81,11 @@ export async function POST(request: Request) {
       projectId = found._id;
     }
 
+    agentId = requestedAgent;
     const created = await col.insertOne({
       userId: user._id,
       ...(projectId ? { projectId } : {}),
+      ...(agentId ? { agent: agentId } : {}),
       title: text.replace(/\s+/g, " ").slice(0, 60),
       messages: [userMessage],
       createdAt: now,
@@ -94,7 +100,10 @@ export async function POST(request: Request) {
     .map(({ role, content }) => ({ role, content }));
 
   const project = projectId ? await (await projects()).findOne({ _id: projectId, companyId: company._id }) : null;
+  const kb = await (await knowledge()).find({ companyId: company._id }).sort({ updatedAt: -1 }).limit(20).toArray();
   const system = systemPromptFor({
+    agentId,
+    knowledge: kb.map((k) => ({ title: k.title, content: k.content })),
     name: user.name,
     companyName: company.name,
     projectName: project?.name,

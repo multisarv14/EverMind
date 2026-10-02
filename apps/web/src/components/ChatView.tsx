@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { PROSE } from "@/components/Markdown";
+import { agents } from "@/constants/agents";
 import { ArrowUp, Plus } from "lucide-react";
 import { timeAgo, type ConversationSummary } from "@/lib/useApi";
 import { USAGE_EVENT } from "@/components/PlanMeter";
@@ -12,9 +14,6 @@ interface Msg {
   role: "user" | "assistant";
   content: string;
 }
-
-const prose =
-  "text-[14px] leading-relaxed text-white/90 [&_a]:text-violet-300 [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-white/20 [&_blockquote]:pl-3 [&_code]:rounded [&_code]:bg-white/10 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[13px] [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-[18px] [&_h1]:font-semibold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-[16px] [&_h2]:font-semibold [&_h3]:mb-1 [&_h3]:mt-3 [&_h3]:font-semibold [&_li]:my-0.5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-black/40 [&_pre]:p-3 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_table]:my-3 [&_table]:w-full [&_td]:border [&_td]:border-white/10 [&_td]:px-2 [&_td]:py-1 [&_th]:border [&_th]:border-white/10 [&_th]:px-2 [&_th]:py-1 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5";
 
 async function fetchHistory(): Promise<ConversationSummary[]> {
   try {
@@ -36,6 +35,9 @@ export default function ChatView({ id }: { id?: string }) {
   const bottom = useRef<HTMLDivElement>(null);
   const autoSent = useRef(false);
   const projectRef = useRef("");
+  const agentRef = useRef("");
+  const [agentId, setAgentId] = useState("");
+  const agent = agents.find((a) => a.id === agentId);
   const [limitReached, setLimitReached] = useState(false);
 
   const loadHistory = useCallback(() => {
@@ -54,7 +56,10 @@ export default function ChatView({ id }: { id?: string }) {
     if (!id) return;
     fetch(`/api/conversations/${id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => setMessages(d.messages))
+      .then((d) => {
+        setMessages(d.messages);
+        if (d.agent) setAgentId(d.agent);
+      })
       .catch(() => setError("This conversation could not be loaded."))
       .finally(() => setLoading(false));
   }, [id]);
@@ -89,6 +94,7 @@ export default function ChatView({ id }: { id?: string }) {
             message: text,
             conversationId: cid || undefined,
             projectId: projectRef.current || undefined,
+            agent: agentRef.current || undefined,
           }),
         });
 
@@ -146,6 +152,9 @@ export default function ChatView({ id }: { id?: string }) {
     if (id || autoSent.current) return;
     const params = new URLSearchParams(window.location.search);
     projectRef.current = params.get("project") ?? "";
+    agentRef.current = params.get("agent") ?? "";
+    const a = agentRef.current;
+    if (a) setTimeout(() => setAgentId(a), 0);
     const q = params.get("q");
     if (q) {
       autoSent.current = true;
@@ -192,6 +201,14 @@ export default function ChatView({ id }: { id?: string }) {
       <section className="flex min-w-0 flex-1 flex-col">
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
           <div className="mx-auto max-w-[760px] space-y-6">
+            {agent && (
+              <p className="flex items-center gap-2 text-[12px] text-white/55">
+                <span className={`flex h-6 w-6 items-center justify-center rounded-md ${agent.tone}`}>
+                  <agent.icon size={13} />
+                </span>
+                Chatting with your {agent.name}
+              </p>
+            )}
             {loading && <p className="text-[13px] text-white/50">Loading…</p>}
 
             {!loading && messages.length === 0 && (
@@ -212,7 +229,7 @@ export default function ChatView({ id }: { id?: string }) {
               ) : (
                 <div key={i} className="flex gap-3">
                   <div className="mt-1 h-7 w-7 shrink-0 rounded-full bg-[radial-gradient(circle_at_35%_35%,#a78bfa,#4338ca_55%,#0b0f2a)]" />
-                  <div className={`min-w-0 flex-1 ${prose}`}>
+                  <div className={`min-w-0 flex-1 ${PROSE}`}>
                     {m.content ? (
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
                     ) : (
@@ -242,7 +259,7 @@ export default function ChatView({ id }: { id?: string }) {
         </div>
 
         <div className="px-6 pb-5">
-          <div className="relative mx-auto max-w-[760px] rounded-2xl border-2 border-violet-500/60 bg-[#0a0c1c] shadow-[0_0_24px_rgba(124,92,255,.25)]">
+          <div className="relative mx-auto max-w-[760px] rounded-2xl border-2 border-violet-500/60 bg-[var(--card-bg)] shadow-[0_0_24px_rgba(124,92,255,.25)]">
             <textarea
               rows={2}
               value={input}

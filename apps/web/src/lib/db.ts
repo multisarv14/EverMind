@@ -58,7 +58,61 @@ export interface UpgradeRequestDoc {
   createdAt: Date;
 }
 
+export type TaskStatus = "todo" | "doing" | "done";
+
+export interface TaskDoc {
+  companyId: ObjectId;
+  projectId?: ObjectId;
+  title: string;
+  status: TaskStatus;
+  assigneeId?: ObjectId;
+  due?: string; // YYYY-MM-DD
+  createdBy: ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type DecisionStatus = "proposed" | "approved" | "rejected";
+
+export interface DecisionDoc {
+  companyId: ObjectId;
+  title: string;
+  context: string;
+  options: string;
+  decision: string;
+  status: DecisionStatus;
+  aiRecommendation?: string;
+  createdBy: ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface KnowledgeDoc {
+  companyId: ObjectId;
+  title: string;
+  content: string;
+  createdBy: ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ReportDoc {
+  companyId: ObjectId;
+  title: string;
+  body: string;
+  createdBy: ObjectId;
+  createdAt: Date;
+}
+
+export interface DailyUsageDoc {
+  _id: string; // `${companyId}:${YYYY-MM-DD}`
+  companyId: ObjectId;
+  day: string;
+  tokens: number;
+}
+
 export interface ConversationDoc {
+  agent?: string;
   projectId?: ObjectId;
   userId: ObjectId;
   title: string;
@@ -90,6 +144,10 @@ async function database() {
       db.collection<InviteDoc>("invites").createIndex({ email: 1 }),
       db.collection<InviteDoc>("invites").createIndex({ companyId: 1, email: 1 }, { unique: true }),
       db.collection<ProjectDoc>("projects").createIndex({ companyId: 1, updatedAt: -1 }),
+      db.collection<TaskDoc>("tasks").createIndex({ companyId: 1, updatedAt: -1 }),
+      db.collection<DecisionDoc>("decisions").createIndex({ companyId: 1, updatedAt: -1 }),
+      db.collection<KnowledgeDoc>("knowledge").createIndex({ companyId: 1, updatedAt: -1 }),
+      db.collection<ReportDoc>("reports").createIndex({ companyId: 1, createdAt: -1 }),
     ]);
     globalForMongo.indexed = true;
   }
@@ -105,6 +163,16 @@ export const invites = async (): Promise<Collection<InviteDoc>> =>
   (await database()).collection<InviteDoc>("invites");
 export const projects = async (): Promise<Collection<ProjectDoc>> =>
   (await database()).collection<ProjectDoc>("projects");
+export const tasks = async (): Promise<Collection<TaskDoc>> =>
+  (await database()).collection<TaskDoc>("tasks");
+export const decisions = async (): Promise<Collection<DecisionDoc>> =>
+  (await database()).collection<DecisionDoc>("decisions");
+export const knowledge = async (): Promise<Collection<KnowledgeDoc>> =>
+  (await database()).collection<KnowledgeDoc>("knowledge");
+export const reports = async (): Promise<Collection<ReportDoc>> =>
+  (await database()).collection<ReportDoc>("reports");
+export const dailyUsage = async (): Promise<Collection<DailyUsageDoc>> =>
+  (await database()).collection<DailyUsageDoc>("dailyUsage");
 export const usage = async (): Promise<Collection<UsageDoc>> =>
   (await database()).collection<UsageDoc>("usage");
 export const upgradeRequests = async (): Promise<Collection<UpgradeRequestDoc>> =>

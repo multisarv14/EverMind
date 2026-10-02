@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   if (project && ObjectId.isValid(project)) filter.projectId = new ObjectId(project);
 
   const list = await (await conversations())
-    .find(filter, { projection: { title: 1, updatedAt: 1, projectId: 1, messages: { $slice: -1 } } })
+    .find(filter, { projection: { title: 1, updatedAt: 1, projectId: 1, agent: 1, messages: { $slice: -1 } } })
     .sort({ updatedAt: -1 })
     .limit(100)
     .toArray();
@@ -27,6 +27,7 @@ export async function GET(request: Request) {
       title: c.title,
       updatedAt: c.updatedAt,
       projectId: c.projectId?.toString() ?? null,
+      agent: c.agent ?? null,
       preview: plain(c.messages[0]?.content ?? "").slice(0, 160),
     })),
   });

@@ -46,7 +46,7 @@ export default function Sidebar({ user }: { user: { name: string; subtitle: stri
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-[265px] shrink-0 flex-col border-r border-white/[0.07] bg-[#06070f] px-4 py-5">
+    <aside className="flex h-screen w-[265px] shrink-0 flex-col border-r border-white/[0.07] bg-[var(--panel-bg)] px-4 py-5">
       <div className="flex items-center gap-3 px-1">
         <div className="h-11 w-11 rounded-full bg-[radial-gradient(circle_at_35%_35%,#a78bfa,#4338ca_55%,#0b0f2a)] shadow-[0_0_22px_rgba(124,92,255,.55)]" />
         <div className="leading-tight">

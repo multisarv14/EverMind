@@ -21,6 +21,7 @@ import { currentSession } from "@/lib/auth";
 import { agents } from "@/constants/agents";
 import HeroPreview from "@/components/HeroPreview";
 import Reveal from "@/components/Reveal";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
   title: "EverMind — Your AI Executive",
@@ -65,8 +66,8 @@ export default async function LandingPage() {
   if (await currentSession()) redirect("/dashboard");
 
   return (
-    <div className="h-screen overflow-y-auto bg-[#05060f] text-white [background-image:radial-gradient(circle_at_50%_-10%,rgba(124,92,255,.28),transparent_45%),radial-gradient(circle_at_85%_30%,rgba(56,189,248,.10),transparent_35%)]">
-      <div className="sticky top-0 z-20 border-b border-white/[0.06] bg-[#05060f]/70 backdrop-blur-md">
+    <div className="h-screen overflow-y-auto bg-[var(--app-bg)] text-white [background-image:radial-gradient(circle_at_50%_-10%,rgba(124,92,255,.28),transparent_45%),radial-gradient(circle_at_85%_30%,rgba(56,189,248,.10),transparent_35%)]">
+      <div className="sticky top-0 z-20 border-b border-white/[0.06] bg-[color-mix(in_srgb,var(--app-bg)_70%,transparent)] backdrop-blur-md">
       <header className="mx-auto flex max-w-[1200px] items-center justify-between px-5 py-4">
         <Link href="/" className="flex items-center gap-3">
           <span className="h-9 w-9 rounded-full bg-[radial-gradient(circle_at_35%_35%,#a78bfa,#4338ca_55%,#0b0f2a)] shadow-[0_0_20px_rgba(124,92,255,.6)]" />
@@ -81,6 +82,7 @@ export default async function LandingPage() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link href="/login" className="rounded-lg px-4 py-2 text-[14px] text-white/80 hover:text-white">
             Sign in
           </Link>

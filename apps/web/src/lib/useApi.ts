@@ -48,6 +48,8 @@ export const formatTokens = (n: number) =>
 
 export interface ConversationSummary {
   id: string;
+  agent?: string | null;
+  projectId?: string | null;
   title: string;
   updatedAt: string;
   preview: string;

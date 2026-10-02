@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { TEAM_SIZES } from "@/constants/team";
+import ThemeToggle from "@/components/ThemeToggle";
 import { ArrowLeft, Brain, Eye, EyeOff, FileText, ShieldCheck } from "lucide-react";
 
 const points = [
@@ -59,7 +60,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const label = "mb-1.5 block text-[13px] font-medium text-white/75";
 
   return (
-    <main className="grid h-screen grid-cols-1 overflow-y-auto bg-[#05060f] text-white lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+    <main className="grid h-screen grid-cols-1 overflow-y-auto bg-[var(--app-bg)] text-white lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
       {/* Form side */}
       <section className="flex flex-col px-6 py-6 sm:px-12">
         <div className="flex items-center justify-between">
@@ -67,9 +68,12 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
             <span className="h-9 w-9 rounded-full bg-[radial-gradient(circle_at_35%_35%,#a78bfa,#4338ca_55%,#0b0f2a)] shadow-[0_0_20px_rgba(124,92,255,.6)]" />
             <span className="text-[19px] font-semibold">EverMind</span>
           </Link>
-          <Link href="/" className="flex items-center gap-1.5 text-[13px] text-white/55 hover:text-white">
-            <ArrowLeft size={14} /> Back to home
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-1.5 text-[13px] text-white/55 hover:text-white">
+              <ArrowLeft size={14} /> Back to home
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
 
         <div className="mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center py-10">
@@ -109,7 +113,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
                 >
                   <option value="" disabled>Select team size</option>
                   {TEAM_SIZES.map((t) => (
-                    <option key={t} value={t} className="bg-[#0a0c1c]">{t}</option>
+                    <option key={t} value={t} className="bg-[var(--card-bg)]">{t}</option>
                   ))}
                 </select>
               </div>
@@ -236,7 +240,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
             ))}
           </ul>
 
-          <div className="mt-10 rounded-2xl border border-white/10 bg-[#0a0c1c]/80 p-4 backdrop-blur">
+          <div className="mt-10 rounded-2xl border border-white/10 bg-[color-mix(in_srgb,var(--card-bg)_80%,transparent)] p-4 backdrop-blur">
             <p className="text-[11px] uppercase tracking-wide text-white/40">Example</p>
             <p className="mt-2 text-[13px] text-white/80">&ldquo;Plan our hiring for the next quarter.&rdquo;</p>
             <p className="mt-2 border-t border-white/10 pt-2 text-[13px] text-white/60">

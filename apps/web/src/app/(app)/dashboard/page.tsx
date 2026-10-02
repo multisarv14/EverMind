@@ -1,35 +1,24 @@
 import TopStatus from "@/components/TopStatus";
 import Hero from "@/components/Hero";
 import KPISection from "@/components/KPISection";
-import CapabilitySection from "@/components/CapabilitySection";
+import GetStarted from "@/components/GetStarted";
 import ActivityFeed from "@/components/ActivityFeed";
-import AIPanel from "@/components/AIPanel";
+import AgentDrawer from "@/components/AgentDrawer";
 
 export default function Home() {
   return (
     <main className="h-full">
-      <section className="flex h-full min-w-0 flex-col gap-3 overflow-y-auto px-7 py-5">
-        <TopStatus />
-
-        <div className="grid flex-1 grid-cols-[minmax(0,1fr)_340px] gap-5 2xl:grid-cols-[minmax(0,1fr)_410px]">
-          <div className="flex flex-col justify-between gap-3">
-            <Hero />
-            <KPISection />
+      <AgentDrawer>
+        <div className="mx-auto flex max-w-[1040px] flex-col gap-6 px-8 py-5">
+          <TopStatus />
+          <Hero />
+          <KPISection />
+          <div className="grid gap-5 lg:grid-cols-2">
+            <GetStarted />
+            <ActivityFeed />
           </div>
-          <AIPanel />
         </div>
-
-        <div className="grid h-[236px] shrink-0 grid-cols-[1.15fr_1fr] gap-4">
-          <CapabilitySection />
-          <ActivityFeed />
-        </div>
-
-        <p className="text-center text-[13px] leading-snug text-violet-300/90">
-          &ldquo;You focus on the vision. I&apos;ll handle everything else.&rdquo;
-          <br />
-          <span className="text-white/60">— EverMind, Your AI Executive</span>
-        </p>
-      </section>
+      </AgentDrawer>
     </main>
   );
 }

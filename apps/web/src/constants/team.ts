@@ -23,7 +23,7 @@ export const can = (role: Role, action: Action) => MATRIX[role].includes(action)
 /** Rows shown in the permissions table on the People screen. */
 export const PERMISSION_ROWS: { action: Action; label: string }[] = [
   { action: "chat", label: "Chat with EverMind" },
-  { action: "createProject", label: "Create and edit projects" },
+  { action: "createProject", label: "Create and edit work (projects, tasks, decisions, knowledge)" },
   { action: "manageTeam", label: "Invite and manage team" },
   { action: "manageBilling", label: "Manage plan and billing" },
 ];
