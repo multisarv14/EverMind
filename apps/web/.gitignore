@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# agent eval output
+/scripts/eval-out/
+
+# docker deployment secrets
+docker.env

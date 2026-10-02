@@ -25,6 +25,8 @@ export async function POST(_request: Request, ctx: { params: Promise<{ id: strin
         systemPromptFor({
           name: session.user.name,
           companyName: session.company.name,
+          industry: session.company.industry,
+          about: session.company.about,
           knowledge: kb.map((k) => ({ title: k.title, content: k.content })),
         }) +
         "\n\nYou are now advising on a logged company decision. Reply in Markdown with: **Recommendation** (one clear choice), **Why** (2-4 bullets), **Main risk**, and **First step**. Keep it under 250 words.",

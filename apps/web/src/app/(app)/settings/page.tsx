@@ -7,6 +7,7 @@ import { api, errMsg } from "@/lib/client";
 import { useApi, formatTokens, type Me } from "@/lib/useApi";
 import { setThemePref, useThemePref, type ThemePref } from "@/lib/theme";
 import { TEAM_SIZES, ROLE_LABEL } from "@/constants/team";
+import { INDUSTRIES } from "@/constants/industries";
 
 type Tab = "profile" | "company" | "appearance" | "plan";
 
@@ -70,6 +71,8 @@ function Profile({ me, reload }: { me: Me; reload: () => void }) {
 function Company({ me, reload }: { me: Me; reload: () => void }) {
   const [name, setName] = useState(me.company.name);
   const [size, setSize] = useState(me.company.teamSize);
+  const [industry, setIndustry] = useState(me.company.industry);
+  const [about, setAbout] = useState(me.company.about);
   const [ok, setOk] = useState("");
   const [error, setError] = useState("");
   const owner = me.can.manageBilling;
@@ -78,7 +81,7 @@ function Company({ me, reload }: { me: Me; reload: () => void }) {
     e.preventDefault();
     setOk(""); setError("");
     try {
-      await api("/api/settings/company", "PATCH", { name, teamSize: size });
+      await api("/api/settings/company", "PATCH", { name, teamSize: size, ...(industry ? { industry } : {}), about });
       setOk("Company updated.");
       reload();
     } catch (err) {
@@ -98,6 +101,17 @@ function Company({ me, reload }: { me: Me; reload: () => void }) {
         <select id="csize" className={field} value={size} onChange={(e) => setSize(e.target.value)} disabled={!owner}>
           {TEAM_SIZES.map((t) => <option key={t} value={t} className="bg-[var(--card-bg)]">{t}</option>)}
         </select>
+      </div>
+      <div>
+        <label htmlFor="cind" className="mb-1.5 block text-[13px] text-white/70">Company type</label>
+        <select id="cind" className={field} value={industry} onChange={(e) => setIndustry(e.target.value)} disabled={!owner}>
+          <option value="">Not set</option>
+          {INDUSTRIES.map((i) => <option key={i.id} value={i.id} className="bg-[var(--card-bg)]">{i.label}</option>)}
+        </select>
+      </div>
+      <div>
+        <label htmlFor="cabout" className="mb-1.5 block text-[13px] text-white/70">What your company does</label>
+        <textarea id="cabout" className={`${field} resize-none`} rows={3} maxLength={400} value={about} onChange={(e) => setAbout(e.target.value)} disabled={!owner} placeholder="EverMind uses this to give answers that fit your business." />
       </div>
       {!owner && <p className="text-[12px] text-white/45">Only the company owner can change these details.</p>}
       <Notice ok={ok} error={error} />

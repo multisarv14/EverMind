@@ -42,7 +42,7 @@ const states = [
   { label: "Learning", dot: "bg-violet-500" },
 ];
 
-export default function Sidebar({ user }: { user: { name: string; subtitle: string } }) {
+export default function Sidebar({ user, onNavigate }: { user: { name: string; subtitle: string }; onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
@@ -65,6 +65,7 @@ export default function Sidebar({ user }: { user: { name: string; subtitle: stri
             <Link
               key={label}
               href={href}
+              onClick={onNavigate}
               className={`flex w-full items-center gap-3 rounded-xl px-4 py-[7px] text-left text-[14px] transition ${
                 active
                   ? "border border-blue-500/40 bg-gradient-to-r from-blue-600/40 to-indigo-700/30 text-white"

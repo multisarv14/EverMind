@@ -1,6 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PAGES = ["/", "/login", "/signup"];
+// Pages anyone can open. Sending signed-in users on to the app is done by the pages themselves
+// (they check the session for real); the cookie alone can be stale, and acting on it here
+// caused redirect loops after a password reset.
+const PUBLIC_PAGES = ["/", "/login", "/signup", "/terms", "/privacy", "/forgot", "/reset"];
 
 // Optimistic gate only: the real session check happens in the API routes
 // (currentUser) and the (app) layout.
@@ -9,7 +12,7 @@ export function proxy(request: NextRequest) {
   const hasSession = request.cookies.has("evermind_session");
 
   if (pathname.startsWith("/api/")) {
-    if (pathname.startsWith("/api/auth/") || hasSession) return NextResponse.next();
+    if (pathname.startsWith("/api/auth/") || pathname === "/api/health" || hasSession) return NextResponse.next();
     return NextResponse.json({ error: "Please sign in." }, { status: 401 });
   }
 
@@ -19,12 +22,9 @@ export function proxy(request: NextRequest) {
     const login = new URL("/login", request.url);
     return NextResponse.redirect(login);
   }
-  if (hasSession && isPublic) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
 };

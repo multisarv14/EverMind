@@ -3,6 +3,8 @@ import type { Role } from "@/constants/team";
 
 export interface UserDoc {
   name: string;
+  /** Sessions issued before this moment are no longer valid. */
+  passwordChangedAt?: Date;
   /** Legacy field from before workspaces; used once to migrate. */
   companyName?: string;
   companyId?: ObjectId;
@@ -19,6 +21,12 @@ export interface ChatMessage {
 }
 
 export interface CompanyDoc {
+  lastLearningAt?: Date;
+  industry?: string;
+  /** What the company does, in the owner's words. */
+  about?: string;
+  /** Enabled specialist agents. Missing = all of them. */
+  agents?: string[];
   name: string;
   teamSize: string;
   plan: string;
@@ -111,8 +119,38 @@ export interface DailyUsageDoc {
   tokens: number;
 }
 
+export interface FeedbackDoc {
+  companyId: ObjectId;
+  userId: ObjectId;
+  conversationId: ObjectId;
+  messageIndex: number;
+  agent?: string;
+  rating: "up" | "down";
+  createdAt: Date;
+}
+
+export interface LearningDoc {
+  companyId: ObjectId;
+  text: string;
+  status: "pending" | "approved" | "dismissed";
+  createdAt: Date;
+}
+
+export interface PasswordResetDoc {
+  _id: string; // sha256 of the emailed token
+  userId: ObjectId;
+  expiresAt: Date;
+}
+
+export interface RateLimitDoc {
+  _id: string;
+  count: number;
+  expireAt: Date;
+}
+
 export interface ConversationDoc {
   agent?: string;
+  depth?: "basic" | "advanced";
   projectId?: ObjectId;
   userId: ObjectId;
   title: string;
@@ -130,7 +168,16 @@ const globalForMongo = globalThis as unknown as {
 };
 
 function client() {
-  globalForMongo.mongo ??= new MongoClient(uri).connect();
+  if (!globalForMongo.mongo) {
+    const connecting = new MongoClient(uri, { serverSelectionTimeoutMS: 5000 }).connect();
+    globalForMongo.mongo = connecting;
+    // If the database was unreachable, forget the failed attempt so the next request retries
+    // instead of reusing a dead connection until the server restarts.
+    connecting.catch(() => {
+      if (globalForMongo.mongo === connecting) globalForMongo.mongo = undefined;
+      globalForMongo.indexed = false;
+    });
+  }
   return globalForMongo.mongo;
 }
 
@@ -148,6 +195,12 @@ async function database() {
       db.collection<DecisionDoc>("decisions").createIndex({ companyId: 1, updatedAt: -1 }),
       db.collection<KnowledgeDoc>("knowledge").createIndex({ companyId: 1, updatedAt: -1 }),
       db.collection<ReportDoc>("reports").createIndex({ companyId: 1, createdAt: -1 }),
+      db.collection<FeedbackDoc>("feedback").createIndex({ userId: 1, conversationId: 1, messageIndex: 1 }, { unique: true }),
+      db.collection<FeedbackDoc>("feedback").createIndex({ companyId: 1, createdAt: -1 }),
+      db.collection<LearningDoc>("learnings").createIndex({ companyId: 1, status: 1, createdAt: -1 }),
+      db.collection<RateLimitDoc>("rateLimits").createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 }),
+      db.collection<PasswordResetDoc>("passwordResets").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+      db.collection<PasswordResetDoc>("passwordResets").createIndex({ userId: 1 }),
     ]);
     globalForMongo.indexed = true;
   }
@@ -173,6 +226,14 @@ export const reports = async (): Promise<Collection<ReportDoc>> =>
   (await database()).collection<ReportDoc>("reports");
 export const dailyUsage = async (): Promise<Collection<DailyUsageDoc>> =>
   (await database()).collection<DailyUsageDoc>("dailyUsage");
+export const feedback = async (): Promise<Collection<FeedbackDoc>> =>
+  (await database()).collection<FeedbackDoc>("feedback");
+export const learnings = async (): Promise<Collection<LearningDoc>> =>
+  (await database()).collection<LearningDoc>("learnings");
+export const rateLimits = async (): Promise<Collection<RateLimitDoc>> =>
+  (await database()).collection<RateLimitDoc>("rateLimits");
+export const passwordResets = async (): Promise<Collection<PasswordResetDoc>> =>
+  (await database()).collection<PasswordResetDoc>("passwordResets");
 export const usage = async (): Promise<Collection<UsageDoc>> =>
   (await database()).collection<UsageDoc>("usage");
 export const upgradeRequests = async (): Promise<Collection<UpgradeRequestDoc>> =>

@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { ChevronLeft, ChevronRight, Sparkles, Trash2 } from "lucide-react";
+import { ArrowRightLeft, ChevronLeft, ChevronRight, ListPlus, Sparkles, Trash2 } from "lucide-react";
 import PageShell from "@/components/PageShell";
+import HowItWorks from "@/components/HowItWorks";
 import { api, errMsg, ApiError } from "@/lib/client";
 import { useApi, type Me } from "@/lib/useApi";
 import { USAGE_EVENT } from "@/components/PlanMeter";
@@ -25,7 +26,8 @@ const COLUMNS: { id: Task["status"]; label: string; dot: string }[] = [
 ];
 
 const field =
-  "rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[13px] text-white outline-none placeholder:text-white/35 focus:border-violet-500/70";
+  "w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[13px] text-white outline-none placeholder:text-white/35 focus:border-violet-500/70";
+const lbl = "mb-1 block text-[12px] font-medium text-white/60";
 const today = () => new Date().toISOString().slice(0, 10);
 
 export default function OperationsPage() {
@@ -90,7 +92,7 @@ export default function OperationsPage() {
   };
 
   return (
-    <PageShell title="Operations" subtitle="Your company's work in one board. Move tasks from to-do to done.">
+    <PageShell title="Operations" subtitle="Your company's day-to-day work on one board. Add tasks, then move them from To do to Done.">
       {error && (
         <p role="alert" className="mb-4 rounded-xl bg-rose-500/10 px-4 py-3 text-[13px] text-rose-300">
           {error}
@@ -99,23 +101,43 @@ export default function OperationsPage() {
       )}
       {notice && <p className="mb-4 rounded-xl bg-emerald-500/10 px-4 py-3 text-[13px] text-emerald-300">{notice}</p>}
 
+      <HowItWorks
+        items={[
+          { icon: ListPlus, title: "Add tasks", text: "Write what needs to be done. Optionally pick a project, a teammate and a due date." },
+          { icon: ArrowRightLeft, title: "Move them along", text: "Use the arrows on a task to move it from To do to In progress to Done." },
+          { icon: Sparkles, title: "Or let EverMind plan", text: "Describe a goal and EverMind turns it into a list of tasks for you." },
+        ]}
+      />
+
       {editable && (
         <div className="mb-6 grid gap-4 xl:grid-cols-2">
           <form onSubmit={add} className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
             <h3 className="text-[14px] font-semibold text-white">Add a task</h3>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <input className={`${field} min-w-[200px] flex-1`} placeholder="What needs to be done?" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} />
-              <select className={field} value={projectId} onChange={(e) => setProjectId(e.target.value)} aria-label="Project">
-                <option value="">No project</option>
-                {projects.map((p) => <option key={p.id} value={p.id} className="bg-[var(--card-bg)]">{p.name}</option>)}
-              </select>
-              <select className={field} value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} aria-label="Assignee">
-                <option value="">Unassigned</option>
-                {people.map((p) => <option key={p.id} value={p.id} className="bg-[var(--card-bg)]">{p.name}</option>)}
-              </select>
-              <input className={field} type="date" value={due} min={today()} onChange={(e) => setDue(e.target.value)} aria-label="Due date" />
-              <button className="rounded-lg bg-violet-600 px-4 py-2 text-[13px] font-medium text-white hover:bg-violet-500">Add</button>
+            <div className="mt-3">
+              <label htmlFor="t-title" className={lbl}>Task</label>
+              <input id="t-title" className={field} placeholder="What needs to be done?" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} />
             </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <div>
+                <label htmlFor="t-project" className={lbl}>Project <span className="text-white/35">(optional)</span></label>
+                <select id="t-project" className={field} value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+                  <option value="">None</option>
+                  {projects.map((p) => <option key={p.id} value={p.id} className="bg-[var(--card-bg)]">{p.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="t-assignee" className={lbl}>Assigned to <span className="text-white/35">(optional)</span></label>
+                <select id="t-assignee" className={field} value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}>
+                  <option value="">Nobody yet</option>
+                  {people.map((p) => <option key={p.id} value={p.id} className="bg-[var(--card-bg)]">{p.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="t-due" className={lbl}>Due date <span className="text-white/35">(optional)</span></label>
+                <input id="t-due" className={field} type="date" value={due} min={today()} onChange={(e) => setDue(e.target.value)} />
+              </div>
+            </div>
+            <button className="mt-4 rounded-lg bg-violet-600 px-5 py-2 text-[13px] font-medium text-white hover:bg-violet-500">Add task</button>
           </form>
 
           <form onSubmit={breakDown} className="rounded-2xl border border-violet-500/25 bg-violet-500/[0.06] p-4">
@@ -123,16 +145,20 @@ export default function OperationsPage() {
               <Sparkles size={15} className="text-violet-300" /> Let EverMind plan it
             </h3>
             <p className="mt-1 text-[12px] text-white/55">Describe a goal and EverMind breaks it into tasks.</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <input className={`${field} min-w-[200px] flex-1`} placeholder="e.g. Launch our beta to 50 clinics" value={goal} onChange={(e) => setGoal(e.target.value)} required minLength={5} maxLength={1000} />
-              <select className={field} value={goalProject} onChange={(e) => setGoalProject(e.target.value)} aria-label="Project for generated tasks">
-                <option value="">No project</option>
+            <div className="mt-3">
+              <label htmlFor="g-goal" className={lbl}>Your goal</label>
+              <input id="g-goal" className={field} placeholder="e.g. Launch our beta to 50 clinics" value={goal} onChange={(e) => setGoal(e.target.value)} required minLength={5} maxLength={1000} />
+            </div>
+            <div className="mt-3">
+              <label htmlFor="g-project" className={lbl}>Add the tasks to a project <span className="text-white/35">(optional)</span></label>
+              <select id="g-project" className={field} value={goalProject} onChange={(e) => setGoalProject(e.target.value)}>
+                <option value="">None</option>
                 {projects.map((p) => <option key={p.id} value={p.id} className="bg-[var(--card-bg)]">{p.name}</option>)}
               </select>
-              <button disabled={busy} className="rounded-lg bg-violet-600 px-4 py-2 text-[13px] font-medium text-white hover:bg-violet-500 disabled:opacity-60">
-                {busy ? "Planning…" : "Break it down"}
-              </button>
             </div>
+            <button disabled={busy} className="mt-4 rounded-lg bg-violet-600 px-5 py-2 text-[13px] font-medium text-white hover:bg-violet-500 disabled:opacity-60">
+              {busy ? "Planning…" : "Break it down"}
+            </button>
           </form>
         </div>
       )}

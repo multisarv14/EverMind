@@ -1,4 +1,4 @@
-import { projects } from "@/lib/db";
+import { projects, tasks } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { can } from "@/constants/team";
 import { forbidden, json, readBody, unauthorized } from "@/lib/http";
@@ -13,12 +13,26 @@ export async function GET() {
     .limit(200)
     .toArray();
 
+  const taskDocs = await (await tasks())
+    .find({ companyId: session.company._id, projectId: { $exists: true } }, { projection: { projectId: 1, status: 1 } })
+    .toArray();
+  const counts = new Map<string, { open: number; done: number }>();
+  for (const t of taskDocs) {
+    const key = t.projectId!.toString();
+    const c = counts.get(key) ?? { open: 0, done: 0 };
+    if (t.status === "done") c.done++;
+    else c.open++;
+    counts.set(key, c);
+  }
+
   return json({
     projects: list.map((p) => ({
       id: p._id.toString(),
       name: p.name,
       description: p.description,
       updatedAt: p.updatedAt,
+      openTasks: counts.get(p._id.toString())?.open ?? 0,
+      doneTasks: counts.get(p._id.toString())?.done ?? 0,
     })),
   });
 }

@@ -3,12 +3,19 @@ import { ObjectId } from "mongodb";
 import { companies, invites, users } from "@/lib/db";
 import { startSession } from "@/lib/auth";
 import { json, readBody } from "@/lib/http";
+import { clientIp, rateLimit, tooManyRequests } from "@/lib/ratelimit";
 import { TEAM_SIZES } from "@/constants/team";
+import { INDUSTRIES } from "@/constants/industries";
 
 export async function POST(request: Request) {
+  const limited = await rateLimit(`signup:ip:${clientIp(request)}`, Number(process.env.SIGNUP_LIMIT_PER_HOUR ?? 15), 3600);
+  if (!limited.ok) return tooManyRequests(limited.retryAfter);
+
   const body = await readBody(request);
   const companyName = String(body.companyName ?? "").trim().replace(/\s+/g, " ");
   const teamSize = String(body.teamSize ?? "");
+  const industry = String(body.industry ?? "");
+  const about = String(body.about ?? "").trim().replace(/\s+/g, " ").slice(0, 400);
   const name = String(body.name ?? "").trim();
   const email = String(body.email ?? "").trim().toLowerCase();
   const password = String(body.password ?? "");
@@ -59,9 +66,15 @@ export async function POST(request: Request) {
         return json({ error: "Please select your team size." }, 400);
       }
 
+      if (!INDUSTRIES.some((i) => i.id === industry)) {
+        return json({ error: "Please select your company type." }, 400);
+      }
+
       const company = await (await companies()).insertOne({
         name: companyName,
         teamSize,
+        industry,
+        ...(about ? { about } : {}),
         plan: "free",
         createdAt: new Date(),
       });

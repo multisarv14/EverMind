@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { Sparkles, Trash2 } from "lucide-react";
+import { CheckCircle2, ClipboardPen, Sparkles, Trash2 } from "lucide-react";
 import PageShell, { EmptyState } from "@/components/PageShell";
+import HowItWorks from "@/components/HowItWorks";
 import Markdown from "@/components/Markdown";
 import { api, errMsg, ApiError } from "@/lib/client";
 import { useApi, timeAgo, type Me } from "@/lib/useApi";
@@ -28,6 +29,7 @@ const BADGE: Record<Decision["status"], string> = {
 
 const field =
   "w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[13px] text-white outline-none placeholder:text-white/35 focus:border-violet-500/70";
+const lbl = "mb-1.5 block text-[13px] font-medium text-white/75";
 
 function DecisionCard({ d, editable, onChange, onError }: { d: Decision; editable: boolean; onChange: () => void; onError: (m: string, plan?: boolean) => void }) {
   const [text, setText] = useState(d.decision);
@@ -123,20 +125,47 @@ export default function DecisionsPage() {
   }
 
   return (
-    <PageShell title="Decisions" subtitle="A log of the decisions your company makes — with EverMind's recommendation.">
+    <PageShell title="Decisions" subtitle="Write down important decisions, get EverMind's recommendation, and keep a record of what you chose and why.">
       {error && (
         <p role="alert" className="mb-4 rounded-xl bg-rose-500/10 px-4 py-3 text-[13px] text-rose-300">
           {error}{planLink && <Link href="/settings" className="ml-2 font-medium underline">View plans</Link>}
         </p>
       )}
 
+      <HowItWorks
+        items={[
+          { icon: ClipboardPen, title: "Log the decision", text: "Write the question, the situation and the options you are weighing." },
+          { icon: Sparkles, title: "Ask EverMind", text: "Get a clear recommendation with the reasons, the main risk and a first step." },
+          { icon: CheckCircle2, title: "Decide and record it", text: "Approve or reject, and note your final choice. Your team can see why later." },
+        ]}
+      />
+
       {editable && (
-        <form onSubmit={add} className="mb-6 space-y-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
+        <form onSubmit={add} className="mb-6 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
           <h3 className="text-[15px] font-semibold text-white">Log a decision</h3>
-          <input className={field} placeholder="What needs to be decided? (e.g. Hire a sales lead or an engineer first?)" value={title} onChange={(e) => setTitle(e.target.value)} required minLength={3} maxLength={200} />
-          <textarea className={`${field} resize-none`} rows={2} placeholder="Context (optional) — what's the situation, constraints, numbers?" value={context} onChange={(e) => setContext(e.target.value)} maxLength={3000} />
-          <textarea className={`${field} resize-none`} rows={2} placeholder="Options you're considering (optional)" value={options} onChange={(e) => setOptions(e.target.value)} maxLength={2000} />
-          <button className="rounded-xl bg-violet-600 px-5 py-2.5 text-[13px] font-medium text-white hover:bg-violet-500">Add decision</button>
+
+          <p className="mb-2 mt-3 text-[11px] uppercase tracking-wide text-white/40">Need an idea? Start from an example</p>
+          <div className="flex flex-wrap gap-2">
+            {["Hire an engineer or a sales lead first?", "Should we raise our prices by 10%?", "Open a second branch this year?", "Build this feature ourselves or buy a tool?"].map((ex) => (
+              <button type="button" key={ex} onClick={() => setTitle(ex)} className="rounded-full border border-white/10 px-3 py-1.5 text-[12px] text-white/70 transition hover:border-violet-500/50 hover:text-white">{ex}</button>
+            ))}
+          </div>
+
+          <div className="mt-4 space-y-4">
+            <div>
+              <label htmlFor="d-title" className={lbl}>What needs to be decided?</label>
+              <input id="d-title" className={field} placeholder="e.g. Hire a sales lead or an engineer first?" value={title} onChange={(e) => setTitle(e.target.value)} required minLength={3} maxLength={200} />
+            </div>
+            <div>
+              <label htmlFor="d-context" className={lbl}>What is the situation? <span className="text-white/35">(optional)</span></label>
+              <textarea id="d-context" className={`${field} resize-none`} rows={2} placeholder="Constraints, numbers, deadlines, what led to this question" value={context} onChange={(e) => setContext(e.target.value)} maxLength={3000} />
+            </div>
+            <div>
+              <label htmlFor="d-options" className={lbl}>Options you are considering <span className="text-white/35">(optional)</span></label>
+              <textarea id="d-options" className={`${field} resize-none`} rows={2} placeholder="One option per line. Leave empty and EverMind will suggest some." value={options} onChange={(e) => setOptions(e.target.value)} maxLength={2000} />
+            </div>
+          </div>
+          <button className="mt-4 rounded-xl bg-violet-600 px-5 py-2.5 text-[13px] font-medium text-white hover:bg-violet-500">Add decision</button>
         </form>
       )}
 

@@ -3,6 +3,9 @@ import { currentSession } from "@/lib/auth";
 import { can } from "@/constants/team";
 import { planOf } from "@/lib/plans";
 import { forbidden, json, readBody, unauthorized } from "@/lib/http";
+import { appUrl, sendMail } from "@/lib/mail";
+import { inviteEmail } from "@/lib/emails";
+import { ROLE_LABEL } from "@/constants/team";
 
 const ASSIGNABLE = ["admin", "member", "viewer"] as const;
 
@@ -57,5 +60,8 @@ export async function POST(request: Request) {
     throw error;
   }
 
-  return json({ ok: true }, 201);
+  const link = `${appUrl(request)}/signup?join=1&email=${encodeURIComponent(email)}`;
+  const { sent } = await sendMail(inviteEmail(email, session.user.name, session.company.name, ROLE_LABEL[role as keyof typeof ROLE_LABEL], link));
+
+  return json({ ok: true, emailed: sent }, 201);
 }

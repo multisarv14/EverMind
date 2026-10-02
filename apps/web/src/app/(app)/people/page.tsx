@@ -43,8 +43,12 @@ export default function PeoplePage() {
     setError("");
     setNotice("");
     try {
-      await call("/api/team/invites", { method: "POST", body: JSON.stringify({ email, role }) });
-      setNotice(`${email} can now sign up with this email to join your company.`);
+      const r = await call("/api/team/invites", { method: "POST", body: JSON.stringify({ email, role }) });
+      setNotice(
+        r.emailed
+          ? `We emailed ${email} an invitation. They join your company when they sign up with that email.`
+          : `${email} can now sign up with this exact email to join your company. (Email isn't set up yet, so please tell them yourself.)`
+      );
       setEmail("");
       team.reload();
     } catch (err) {
@@ -111,7 +115,7 @@ export default function PeoplePage() {
                 </button>
               </div>
               <p className="mt-3 text-[12px] leading-relaxed text-white/45">
-                We don&apos;t send emails yet. Tell your teammate to open EverMind, choose{" "}
+                Your teammate gets an invitation email when email is set up. Otherwise, tell them to open EverMind, choose{" "}
                 <span className="text-white/70">&ldquo;Join with your email&rdquo;</span> on the sign-up page and use this exact email.
               </p>
             </form>

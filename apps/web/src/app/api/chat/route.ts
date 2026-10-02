@@ -1,12 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { ObjectId } from "mongodb";
 import { conversations, knowledge, projects, type ChatMessage } from "@/lib/db";
-import { AGENT_PERSONAS } from "@/lib/agentPersonas";
+import { AGENT_TRAINING } from "@/constants/agentTraining";
 import { currentSession } from "@/lib/auth";
 import { can } from "@/constants/team";
 import { planOf } from "@/lib/plans";
 import { addTokens, tokensUsed } from "@/lib/usage";
 import { forbidden, json, readBody, unauthorized } from "@/lib/http";
+import { rateLimit } from "@/lib/ratelimit";
 import { systemPromptFor } from "@/lib/persona";
 
 export const runtime = "nodejs";
@@ -31,6 +32,14 @@ export async function POST(request: Request) {
     );
   }
 
+  const limited = await rateLimit(`chat:user:${user._id.toString()}`, 30, 600);
+  if (!limited.ok) {
+    return json(
+      { error: "You're sending messages very quickly. Please wait a minute and try again.", code: "rate_limited" },
+      429
+    );
+  }
+
   const plan = planOf(company.plan);
   const usedBefore = await tokensUsed(company._id);
   if (usedBefore >= plan.monthlyTokens) {
@@ -47,7 +56,8 @@ export async function POST(request: Request) {
   const text = String(body.message ?? "").trim();
   const conversationId = typeof body.conversationId === "string" ? body.conversationId : "";
   const requestedProject = typeof body.projectId === "string" ? body.projectId : "";
-  const requestedAgent = typeof body.agent === "string" && body.agent in AGENT_PERSONAS ? body.agent : "";
+  const depth: "basic" | "advanced" = body.depth === "advanced" ? "advanced" : "basic";
+  const requestedAgent = typeof body.agent === "string" && body.agent in AGENT_TRAINING && (!company.agents || company.agents.includes(body.agent)) ? body.agent : "";
 
   if (!text) return json({ error: "Message is empty." }, 400);
   if (text.length > MAX_MESSAGE_CHARS) return json({ error: "Message is too long." }, 400);
@@ -69,7 +79,7 @@ export async function POST(request: Request) {
     history = existing.messages;
     projectId = existing.projectId;
     agentId = existing.agent ?? "";
-    await col.updateOne({ _id: id }, { $push: { messages: userMessage }, $set: { updatedAt: now } });
+    await col.updateOne({ _id: id }, { $push: { messages: userMessage }, $set: { updatedAt: now, depth } });
   } else {
     if (requestedProject) {
       if (!ObjectId.isValid(requestedProject)) return json({ error: "Project not found." }, 404);
@@ -86,6 +96,7 @@ export async function POST(request: Request) {
       userId: user._id,
       ...(projectId ? { projectId } : {}),
       ...(agentId ? { agent: agentId } : {}),
+      depth,
       title: text.replace(/\s+/g, " ").slice(0, 60),
       messages: [userMessage],
       createdAt: now,
@@ -103,6 +114,9 @@ export async function POST(request: Request) {
   const kb = await (await knowledge()).find({ companyId: company._id }).sort({ updatedAt: -1 }).limit(20).toArray();
   const system = systemPromptFor({
     agentId,
+    depth,
+    industry: company.industry,
+    about: company.about,
     knowledge: kb.map((k) => ({ title: k.title, content: k.content })),
     name: user.name,
     companyName: company.name,
@@ -112,20 +126,32 @@ export async function POST(request: Request) {
 
   const client = new Anthropic();
   const encoder = new TextEncoder();
-  const send = (controller: ReadableStreamDefaultController, event: object) =>
-    controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+  const send = (controller: ReadableStreamDefaultController, event: object) => {
+    try {
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+    } catch {
+      /* the browser disconnected (e.g. the Stop button); nothing to send to */
+    }
+  };
 
   const stream = new ReadableStream({
     async start(controller) {
       send(controller, { type: "meta", conversationId: id.toString() });
 
       let reply = "";
+      let aborted = false;
       try {
         const response = client.messages.stream({
           model: process.env.ANTHROPIC_MODEL ?? "claude-opus-5-5",
           max_tokens: 16000,
           system,
           messages,
+        });
+
+        // Stop button / closed tab: stop paying for a reply nobody is reading.
+        request.signal.addEventListener("abort", () => {
+          aborted = true;
+          response.abort();
         });
 
         response.on("text", (delta) => {
@@ -148,6 +174,11 @@ export async function POST(request: Request) {
           usage: { used: usedBefore + spent, limit: plan.monthlyTokens },
         });
       } catch (error) {
+        if (aborted) {
+          // Charge a rough estimate (about 4 characters per token) for what was generated.
+          await addTokens(company._id, Math.ceil((system.length + JSON.stringify(messages).length + reply.length) / 4));
+          return;
+        }
         const message =
           error instanceof Anthropic.AuthenticationError
             ? "The Anthropic API key was rejected. Check ANTHROPIC_API_KEY."
@@ -168,7 +199,11 @@ export async function POST(request: Request) {
             }
           );
         }
-        controller.close();
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
       }
     },
   });

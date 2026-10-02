@@ -34,7 +34,10 @@ export interface PlanInfo {
 
 export interface Me {
   user: { name: string; email: string };
-  company: { name: string; teamSize: string };
+  company: { name: string; teamSize: string; industry: string; about: string };
+  /** Specialist agents the company has switched on. */
+  agents: string[];
+  needsOnboarding: boolean;
   role: Role;
   can: { chat: boolean; createProject: boolean; manageTeam: boolean; manageBilling: boolean };
   plan: { id: string; name: string; seats: number };

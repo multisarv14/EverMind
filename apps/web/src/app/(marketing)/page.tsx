@@ -300,6 +300,10 @@ export default async function LandingPage() {
         </div>
         <p className="mx-auto mt-10 max-w-[1200px] border-t border-white/[0.06] pt-6 text-[12px] text-white/40">
           © {new Date().getFullYear()} EverMind. All rights reserved.
+          <span className="float-right flex gap-4">
+            <Link href="/terms" className="hover:text-white">Terms</Link>
+            <Link href="/privacy" className="hover:text-white">Privacy</Link>
+          </span>
         </p>
       </footer>
     </div>

@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EverMind (web app)
 
-## Getting Started
+EverMind is an AI Executive for companies: a chat with 12 specialist agents, projects, tasks, decisions,
+company knowledge, reports and analytics, with team roles and a free plan.
 
-First, run the development server:
+Stack: Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · MongoDB · Claude (Anthropic API).
+
+## Run it locally
+
+You need Node 20+ and Docker.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 1. MongoDB
+docker run -d --name evermind-mongo --restart unless-stopped -p 27017:27017 -v evermind-mongo:/data/db mongo:7
+
+# 2. Install
+cd apps/web
+npm ci
+
+# 3. Configure (create apps/web/.env.local — it is git-ignored)
+cat > .env.local <<'ENV'
+MONGODB_URI=mongodb://localhost:27017/evermind
+AUTH_SECRET=<a random string of 32+ characters>
+ANTHROPIC_API_KEY=<your Anthropic key>
+ANTHROPIC_MODEL=claude-opus-5-5
+ENV
+
+# 4. Start
+npm run dev:all      # makes sure MongoDB is running, then starts the app on http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`npm run db` alone (re)starts the MongoDB container if Docker stopped it. Your data lives in the
+`evermind-mongo` Docker volume, so a recreated container keeps everything.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Generate a secret with: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Without `ANTHROPIC_API_KEY` everything except the AI features works (tasks, decisions log, knowledge,
+report data, analytics, team, settings). AI features show a clear "AI is not configured" message.
 
-## Learn More
+## Settings (environment variables)
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Default | What it does |
+|---|---|---|
+| `MONGODB_URI` | `mongodb://localhost:27017/evermind` | Database connection |
+| `AUTH_SECRET` | — (required, 32+ chars) | Signs login cookies |
+| `ANTHROPIC_API_KEY` | — | Turns on the AI |
+| `ANTHROPIC_MODEL` | `claude-opus-5-5` | Model for chat and AI actions. A cheaper model (e.g. `claude-sonnet-5-5`) cuts cost roughly in half |
+| `ANTHROPIC_LEARNING_MODEL` | same as above | Model for the nightly learning job |
+| `FREE_MONTHLY_TOKENS` | `50000` | Token allowance per company on the Free plan |
+| `FREE_SEATS` | `3` | Team members allowed on the Free plan |
+| `APP_URL` | the request's address | Public address of the site, used for links in emails and in sitemap/robots |
+| `SMTP_URL` | — | Turns on real emails (invitations, password reset), e.g. `smtp://user:pass@smtp.example.com:587`. Without it nothing is sent; in development the email is printed in the server console |
+| `MAIL_FROM` | `EverMind <no-reply@localhost>` | The "from" address of emails |
+| `SIGNUP_LIMIT_PER_HOUR` | `15` | Sign-ups allowed per IP address per hour |
+| `LEARNING_SCHEDULER` | on | Set to `off` to disable the nightly learning job |
+| `LEARNING_HOUR_UTC` | `21` | Hour (UTC) when the nightly job runs (21 = 02:30 India) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## What is where
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `src/app/(marketing)` public home page · `src/app/(auth)` login and sign-up · `src/app/(app)` the signed-in app
+- `src/app/api` JSON API (auth, chat streaming, projects, tasks, decisions, knowledge, reports, analytics, team, plan, learning)
+- `src/constants/agentTraining.ts` the training for the 12 agents (foundations, advanced toolkit, playbooks, guardrails)
+- `src/constants/industries.ts` company types and which agents each type is recommended (shown when a company signs up)
+- `src/lib/persona.ts` builds the system prompt (company, project, agent, depth, knowledge)
+- `src/lib/learning.ts` + `learningScheduler.ts` the daily "what did EverMind learn" job (suggestions need owner approval)
+- `scripts/eval-agents.mjs` checks the quality of every agent (spends real tokens, see below)
 
-## Deploy on Vercel
+## Run the tests
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm test
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Starts a throw-away database and a fake Claude (no real key, no cost), runs 17 checks of sign-up, login, password reset,
+team roles, company isolation, chat, learning, reports and plan limits, then cleans up. Needs ports 3200 and 9999 free.
+
+## Deploy
+
+The app is a standard Next.js server plus MongoDB. A `Dockerfile` (small, non-root image) and a `docker-compose.yml`
+(app + MongoDB with a data volume) are included:
+
+```bash
+cp apps/web/docker.env.example apps/web/docker.env   # then fill in AUTH_SECRET, ANTHROPIC_API_KEY, APP_URL, SMTP_URL
+docker compose up -d --build                         # app on http://localhost:3000
+```
+
+`GET /api/health` answers `{"ok":true}` when the app can reach the database; use it for uptime monitoring.
+For real use, put it behind HTTPS (the app sends HSTS in production), use a managed MongoDB (e.g. Atlas) or back up the
+`mongo-data` volume, and keep the server running so the nightly learning job can run.
+
+## Check agent quality
+
+```bash
+FREE_MONTHLY_TOKENS=1000000 npm run dev      # in one terminal
+node scripts/eval-agents.mjs --quick         # in another (one question per agent)
+```
+
+Answers are saved to `scripts/eval-out/` so you can read them.
+
+## Notes
+
+- The nightly learning job only runs while the server is running (it does not run on serverless hosts or a sleeping Codespace).
+- Login and sign-up are rate-limited (MongoDB-backed).
+- There is no payment system yet: "Upgrade" records a request.
+- The older C# prototype in `apps/api` is not used by this app.

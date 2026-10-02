@@ -1,6 +1,7 @@
 import { companies } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { can, TEAM_SIZES } from "@/constants/team";
+import { INDUSTRIES } from "@/constants/industries";
 import { clip, forbidden, json, readBody, unauthorized } from "@/lib/http";
 
 export async function PATCH(request: Request) {
@@ -20,6 +21,11 @@ export async function PATCH(request: Request) {
     if (!(TEAM_SIZES as readonly string[]).includes(String(body.teamSize))) return json({ error: "Invalid team size." }, 400);
     set.teamSize = String(body.teamSize);
   }
+  if (body.industry !== undefined) {
+    if (!INDUSTRIES.some((i) => i.id === String(body.industry))) return json({ error: "Invalid company type." }, 400);
+    set.industry = String(body.industry);
+  }
+  if (body.about !== undefined) set.about = clip(body.about, 400).replace(/\s+/g, " ");
   if (Object.keys(set).length === 0) return json({ error: "Nothing to update." }, 400);
 
   await (await companies()).updateOne({ _id: session.company._id }, { $set: set });

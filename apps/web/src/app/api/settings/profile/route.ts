@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { users } from "@/lib/db";
-import { currentSession } from "@/lib/auth";
+import { currentSession, startSession } from "@/lib/auth";
 import { clip, json, readBody, unauthorized } from "@/lib/http";
 
 export async function PATCH(request: Request) {
@@ -24,10 +24,13 @@ export async function PATCH(request: Request) {
       return json({ error: "Your current password is incorrect." }, 400);
     }
     set.passwordHash = await bcrypt.hash(next, 12);
+    set.passwordChangedAt = new Date(Math.floor(Date.now() / 1000) * 1000); // whole seconds, like session tokens
   }
 
   if (Object.keys(set).length === 0) return json({ error: "Nothing to update." }, 400);
 
   await (await users()).updateOne({ _id: session.user._id }, { $set: set });
+  // Changing the password signed out every older session; keep this one.
+  if (set.passwordChangedAt) await startSession(session.user._id.toString());
   return json({ ok: true });
 }

@@ -23,6 +23,7 @@ export async function GET(_request: Request, ctx: Ctx) {
     title: convo.title,
     projectId: convo.projectId?.toString() ?? null,
     agent: convo.agent ?? null,
+    depth: convo.depth ?? "basic",
     messages: convo.messages.map(({ role, content }) => ({ role, content })),
   });
 }

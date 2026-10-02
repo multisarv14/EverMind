@@ -58,6 +58,9 @@ export default function BarChart({ title, unit, bars }: { title: string; unit: s
         </div>
       ) : (
         <div className="relative mt-3" onMouseLeave={() => setHover(null)}>
+          {total === 0 && (
+            <p className="pointer-events-none absolute inset-x-0 top-[38%] text-center text-[12px] text-white/40">No activity yet. This fills in as your team uses EverMind.</p>
+          )}
           <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={`${title}: ${total} ${unit} over ${bars.length} days`}>
             {ticks.map((t) => (
               <g key={t}>

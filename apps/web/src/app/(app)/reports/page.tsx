@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { FileText } from "lucide-react";
+import { FileText, ListChecks, Sparkles, Table2 } from "lucide-react";
 import PageShell, { EmptyState } from "@/components/PageShell";
+import HowItWorks from "@/components/HowItWorks";
 import { api, errMsg, ApiError } from "@/lib/client";
 import { useApi, timeAgo, type Me } from "@/lib/useApi";
 import { USAGE_EVENT } from "@/components/PlanMeter";
@@ -40,12 +41,21 @@ export default function ReportsPage() {
   }
 
   return (
-    <PageShell title="Reports" subtitle="Status reports built from your projects, tasks, decisions and activity.">
+    <PageShell title="Reports" subtitle="One-click status reports for your team or investors, built from what is in your workspace.">
+      <HowItWorks
+        items={[
+          { icon: Table2, title: "Numbers at a glance", text: "Projects, tasks done and open, decisions, conversations and AI usage for the period." },
+          { icon: ListChecks, title: "Projects, tasks, decisions", text: "A readable list of progress, what is still open and what was decided." },
+          { icon: Sparkles, title: "Optional EverMind summary", text: "Add a short executive summary with risks and next steps. Download any report to share." },
+        ]}
+      />
+
       {editable && (
         <form onSubmit={generate} className="mb-6 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
           <h3 className="text-[15px] font-semibold text-white">Generate a report</h3>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <select value={days} onChange={(e) => setDays(Number(e.target.value))} aria-label="Period"
+            <label htmlFor="r-period" className="text-[13px] text-white/70">Period</label>
+            <select id="r-period" value={days} onChange={(e) => setDays(Number(e.target.value))} aria-label="Period"
               className="rounded-lg border border-white/10 bg-[var(--card-bg)] px-3 py-2 text-[13px] text-white outline-none focus:border-violet-500/70">
               <option value={7}>Last 7 days</option>
               <option value={30}>Last 30 days</option>

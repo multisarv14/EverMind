@@ -40,10 +40,10 @@ export default function AnalyticsPage() {
   const maxChats = Math.max(...data.members.map((m) => m.conversations), 1);
 
   return (
-    <PageShell title="Analytics" subtitle="How your company uses EverMind, and how work is going">
+    <PageShell title="Analytics" subtitle="How much your team uses EverMind, and how your work is progressing. It fills in as you use the app.">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Tile label="Tokens used (14 days)" value={data.totals.tokens.toLocaleString()} />
-        <Tile label="Conversations (14 days)" value={String(data.totals.conversations)} />
+        <Tile label="AI usage (14 days)" value={data.totals.tokens.toLocaleString()} note="Tokens: how much EverMind has read and written" />
+        <Tile label="Conversations (14 days)" value={String(data.totals.conversations)} note="Chats started by your team" />
         <Tile label="Tasks completed" value={`${donePct}%`} note={`${data.tasks.done} of ${taskTotal} tasks`} />
         <Tile label="Decisions approved" value={String(data.decisions.approved)} note={`${data.decisions.proposed} awaiting a decision`} />
       </div>

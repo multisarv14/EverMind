@@ -55,6 +55,9 @@ export async function currentSession(): Promise<Session | null> {
     let user = await usersCol.findOne({ _id: new ObjectId(payload.sub) });
     if (!user) return null;
 
+    // A password change/reset signs out every session that was issued before it.
+    if (user.passwordChangedAt && (payload.iat ?? 0) * 1000 < user.passwordChangedAt.getTime()) return null;
+
     // Accounts created before workspaces existed get their own company, as owner.
     if (!user.companyId || !user.role) {
       const created = await (await companies()).insertOne({
