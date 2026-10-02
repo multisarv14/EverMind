@@ -8,11 +8,11 @@ import AIPanel from "@/components/AIPanel";
 export default function Home() {
   return (
     <main className="h-full">
-      <section className="flex h-full min-w-0 flex-col gap-3 overflow-hidden px-7 py-5">
+      <section className="flex h-full min-w-0 flex-col gap-3 overflow-y-auto px-7 py-5">
         <TopStatus />
 
-        <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_410px] gap-5">
-          <div className="flex min-h-0 flex-col justify-between gap-3">
+        <div className="grid flex-1 grid-cols-[minmax(0,1fr)_340px] gap-5 2xl:grid-cols-[minmax(0,1fr)_410px]">
+          <div className="flex flex-col justify-between gap-3">
             <Hero />
             <KPISection />
           </div>
