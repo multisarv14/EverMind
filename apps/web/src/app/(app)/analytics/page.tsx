@@ -44,7 +44,7 @@ export default function AnalyticsPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Tile label="AI usage (14 days)" value={data.totals.tokens.toLocaleString()} note="Tokens: how much EverMind has read and written" />
         <Tile label="Conversations (14 days)" value={String(data.totals.conversations)} note="Chats started by your team" />
-        <Tile label="Tasks completed" value={`${donePct}%`} note={`${data.tasks.done} of ${taskTotal} tasks`} />
+        <Tile label="Tasks completed" value={taskTotal ? `${donePct}%` : "—"} note={taskTotal ? `${data.tasks.done} of ${taskTotal} tasks` : "No tasks yet"} />
         <Tile label="Decisions approved" value={String(data.decisions.approved)} note={`${data.decisions.proposed} awaiting a decision`} />
       </div>
 

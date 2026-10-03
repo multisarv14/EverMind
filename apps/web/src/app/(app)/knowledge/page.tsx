@@ -114,8 +114,15 @@ export default function KnowledgePage() {
           {editing !== null && (
             <form onSubmit={save} className="mb-6 space-y-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
               <h3 className="text-[15px] font-semibold text-white">{editing === "new" ? "Add to company knowledge" : "Edit knowledge"}</h3>
-              <input className={field} placeholder="Title (e.g. What we sell, Pricing, Brand voice)" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={120} />
-              <textarea className={`${field} resize-none`} rows={6} placeholder="Write what EverMind should know. Facts, products, customers, policies, goals…" value={content} onChange={(e) => setContent(e.target.value)} required maxLength={8000} />
+              <div>
+                <label htmlFor="k-title" className="mb-1.5 block text-[13px] font-medium text-white/75">Topic</label>
+                <input id="k-title" className={field} placeholder="e.g. What we sell, Pricing, Brand voice" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={120} />
+              </div>
+              <div>
+                <label htmlFor="k-content" className="mb-1.5 block text-[13px] font-medium text-white/75">What should EverMind know?</label>
+                <textarea id="k-content" className={`${field} resize-none`} rows={6} placeholder="Write it the way you would explain it to a new team member: facts, products, customers, prices, policies, goals…" value={content} onChange={(e) => setContent(e.target.value)} required maxLength={8000} />
+                <p className="mt-1 text-[12px] text-white/45">EverMind reads this in every answer. Keep it factual and don&apos;t include passwords or private personal data.</p>
+              </div>
               {error && <p role="alert" className="rounded-lg bg-rose-500/10 px-3 py-2 text-[13px] text-rose-300">{error}</p>}
               <div className="flex gap-2">
                 <button className="rounded-xl bg-violet-600 px-5 py-2.5 text-[13px] font-medium text-white hover:bg-violet-500">Save</button>
@@ -125,12 +132,18 @@ export default function KnowledgePage() {
           )}
 
           {kb.data && items.length === 0 && editing === null ? (
-            <>
-              <EmptyState title="Teach EverMind about your company" text={editable ? "Add facts about what you sell, who your customers are and how you work. EverMind reads these in every answer, so the more it knows, the more specific and useful it gets." : "Your team hasn't added company knowledge yet."} />
+            <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-6 py-10 text-center">
+              <div className="mx-auto h-11 w-11 rounded-full bg-[radial-gradient(circle_at_40%_35%,#c4b5fd,#6d28d9_55%,#1e1b4b)] shadow-[0_0_22px_rgba(124,92,255,.45)]" />
+              <p className="mt-4 text-[16px] font-semibold text-white">Teach EverMind about your company</p>
+              <p className="mx-auto mt-1 max-w-[520px] text-[13px] leading-relaxed text-white/60">
+                {editable
+                  ? "Add facts about what you sell, who your customers are and how you work. EverMind reads these in every answer, so the more it knows, the more specific and useful it gets."
+                  : "Your team hasn't added company knowledge yet."}
+              </p>
               {editable && (
-                <div className="mt-6">
-                  <p className="mb-2 text-[11px] uppercase tracking-wide text-white/40">Not sure what to write? Start with one of these</p>
-                  <div className="flex flex-wrap gap-2">
+                <>
+                  <p className="mb-2 mt-6 text-[11px] uppercase tracking-wide text-white/40">Not sure what to write? Start with one of these</p>
+                  <div className="flex flex-wrap justify-center gap-2">
                     {[
                       ["What we sell", "We sell "],
                       ["Our customers", "Our customers are "],
@@ -145,9 +158,9 @@ export default function KnowledgePage() {
                       </button>
                     ))}
                   </div>
-                </div>
+                </>
               )}
-            </>
+            </div>
           ) : (
             <ul className="grid gap-3 xl:grid-cols-2">
               {items.map((i) => (
@@ -220,7 +233,7 @@ export default function KnowledgePage() {
 
       {tab === "memory" && (
         chats.data && chats.data.conversations.length === 0 ? (
-          <EmptyState title="Nothing remembered yet" text="Give EverMind an objective on the Command Center and it will be stored here." />
+          <EmptyState title="No conversations yet" text="Every chat you have with EverMind is saved here, so you can find it and continue later." />
         ) : (
           <ul className="space-y-3">
             {chats.data?.conversations.map((c) => (
