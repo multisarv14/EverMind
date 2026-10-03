@@ -24,9 +24,9 @@ import Reveal from "@/components/Reveal";
 import ThemeToggle from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
-  title: "EverMind — Your AI Executive",
+  title: "EverMind — AI That Remembers. AI That Evolves.",
   description:
-    "EverMind is an AI Executive for founders and CEOs. Share a goal and it understands, plans, decides and drafts the work. Free to start.",
+    "EverMind is an AI executive team for your company. Specialist agents for strategy, finance, marketing, operations and more learn your business, remember every conversation and decision, and keep getting sharper every day. Free to start.",
 };
 
 const today = [
@@ -103,14 +103,14 @@ export default async function LandingPage() {
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Free to start · No credit card
           </p>
           <h1 className="mx-auto mt-6 max-w-[860px] text-[40px] font-bold leading-[1.1] sm:text-[60px]">
-            Meet EverMind,{" "}
+            AI That Remembers.{" "}
             <span className="bg-gradient-to-r from-sky-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-              your AI Executive
+              AI That Evolves.
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-[640px] text-[17px] leading-relaxed text-white/70">
-            Share a goal. EverMind understands it, plans it, recommends the decision and drafts the work —
-            like a chief of staff that never sleeps. You focus on the vision.
+            EverMind is your AI executive team. Specialist agents learn your company, remember every conversation
+            and decision, and get sharper every day. You focus on the vision.
           </p>
 
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -278,7 +278,7 @@ export default async function LandingPage() {
               <span className="text-[17px] font-semibold">EverMind</span>
             </div>
             <p className="mt-3 max-w-[300px] text-[13px] leading-relaxed text-white/50">
-              Your AI Executive. You focus on the vision; EverMind handles the rest.
+              Your AI executive team that learns your company.
             </p>
           </div>
           <div>

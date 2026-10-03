@@ -33,7 +33,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </div>
 
         <p className="text-center text-[12px] text-white/35">
-          © {new Date().getFullYear()} EverMind · Your AI Executive
+          © {new Date().getFullYear()} EverMind · AI That Remembers. AI That Evolves.
         </p>
       </section>
 

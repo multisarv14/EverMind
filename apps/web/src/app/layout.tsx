@@ -4,12 +4,12 @@ import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
-  title: { default: "EverMind — Your AI Executive", template: "%s · EverMind" },
+  title: { default: "EverMind — AI That Remembers. AI That Evolves.", template: "%s · EverMind" },
   description:
-    "EverMind is an AI Executive for founders and CEOs. Share a goal and it understands, plans, decides and drafts the work. Free to start.",
+    "EverMind is an AI executive team for your company. Specialist agents for strategy, finance, marketing, operations and more learn your business, remember every conversation and decision, and keep getting sharper every day. Free to start.",
   openGraph: {
-    title: "EverMind — Your AI Executive",
-    description: "Share a goal. EverMind plans it, recommends the decision and drafts the work.",
+    title: "EverMind — AI That Remembers. AI That Evolves.",
+    description: "Your AI executive team that learns your company.",
     siteName: "EverMind",
     type: "website",
   },
