@@ -1,8 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
+import type { ObjectId } from "mongodb";
 import type { Session } from "@/lib/auth";
 import type { CompanyRecord } from "@/lib/db";
-import { planOf } from "@/lib/plans";
-import { addTokens, tokensUsed } from "@/lib/usage";
+import { recordSpend, spendBlock } from "@/lib/entitlements";
 import { rateLimit } from "@/lib/ratelimit";
 
 export class AiError extends Error {
@@ -19,9 +19,12 @@ export interface AskOptions {
   schema?: Record<string, unknown>;
   /** Override the model (e.g. a cheaper one for background jobs). */
   model?: string;
+  /** What the call is for, recorded with its cost (e.g. "tasks", "learning"). */
+  feature?: string;
+  userId?: ObjectId;
 }
 
-export const ask = (session: Session, opts: AskOptions) => askCompany(session.company, opts);
+export const ask = (session: Session, opts: AskOptions) => askCompany(session.company, { userId: session.user._id, ...opts });
 
 export async function askCompany(company: CompanyRecord, opts: AskOptions): Promise<string> {
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -37,25 +40,20 @@ export async function askCompany(company: CompanyRecord, opts: AskOptions): Prom
     throw new AiError("EverMind is being asked a lot right now. Please wait a minute and try again.", 429, "rate_limited");
   }
 
-  const plan = planOf(company.plan);
-  if ((await tokensUsed(company._id)) >= plan.monthlyTokens) {
-    throw new AiError(
-      `Your company has used all ${plan.monthlyTokens.toLocaleString()} tokens on the ${plan.name} plan this month. Upgrade to keep going.`,
-      402,
-      "limit_reached"
-    );
-  }
+  const blocked = await spendBlock(company);
+  if (blocked) throw new AiError(blocked.message, 402, "limit_reached");
 
+  const model = opts.model || process.env.ANTHROPIC_MODEL || "claude-opus-5-5";
   try {
     const response = await new Anthropic().messages.create({
-      model: opts.model ?? process.env.ANTHROPIC_MODEL ?? "claude-opus-5-5",
+      model,
       max_tokens: opts.maxTokens ?? 2000,
       system: opts.system,
       messages: [{ role: "user", content: opts.prompt }],
       ...(opts.schema ? { output_config: { format: { type: "json_schema", schema: opts.schema } } } : {}),
     } as Anthropic.MessageCreateParamsNonStreaming);
 
-    await addTokens(company._id, response.usage.input_tokens + response.usage.output_tokens);
+    await recordSpend(company, { model, usage: response.usage, feature: opts.feature ?? "action", userId: opts.userId });
 
     if (response.stop_reason === "refusal") {
       throw new AiError("EverMind can't help with that request.", 422, "refusal");

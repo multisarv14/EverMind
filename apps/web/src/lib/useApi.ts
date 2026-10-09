@@ -27,9 +27,17 @@ export type Role = "owner" | "admin" | "member" | "viewer";
 export interface PlanInfo {
   id: string;
   name: string;
-  monthlyTokens: number;
+  monthlyCredits: number;
   seats: number;
+  priceInr: { monthly: number; yearly: number };
+  topUps: boolean;
   blurb: string;
+}
+
+export interface PackInfo {
+  id: string;
+  credits: number;
+  priceInr: number;
 }
 
 export interface Me {
@@ -40,14 +48,27 @@ export interface Me {
   needsOnboarding: boolean;
   role: Role;
   can: { chat: boolean; createProject: boolean; manageTeam: boolean; manageBilling: boolean };
-  plan: { id: string; name: string; seats: number };
-  usage: { used: number; limit: number };
+  plan: { id: string; name: string; seats: number; topUps: boolean };
+  usage: { used: number; limit: number; packBalance: number; resetsAt: string };
+  billing: {
+    /** Online payment is set up on the server. */
+    online: boolean;
+    status: "active" | "past_due" | "cancelled" | null;
+    interval: "monthly" | "yearly" | null;
+    periodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+    graceUntil: string | null;
+  };
   upgradeRequested: boolean;
   plans: PlanInfo[];
+  packs: PackInfo[];
 }
 
 export const formatTokens = (n: number) =>
   n >= 1_000_000 ? `${(n / 1_000_000).toFixed(n % 1_000_000 ? 1 : 0)}M` : n >= 1000 ? `${Math.round(n / 1000)}k` : String(n);
+
+export const formatInr = (n: number) =>
+  `₹${n.toLocaleString("en-IN", { maximumFractionDigits: n % 1 ? 2 : 0, minimumFractionDigits: n % 1 ? 2 : 0 })}`;
 
 export interface ConversationSummary {
   id: string;

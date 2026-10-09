@@ -5,8 +5,8 @@ import BarChart from "@/components/BarChart";
 import { useApi } from "@/lib/useApi";
 
 interface Analytics {
-  days: { day: string; tokens: number; conversations: number }[];
-  totals: { tokens: number; conversations: number };
+  days: { day: string; credits: number; conversations: number }[];
+  totals: { credits: number; conversations: number };
   tasks: { todo: number; doing: number; done: number };
   decisions: { proposed: number; approved: number; rejected: number };
   members: { name: string; conversations: number }[];
@@ -42,14 +42,14 @@ export default function AnalyticsPage() {
   return (
     <PageShell title="Analytics" subtitle="How much your team uses EverMind, and how your work is progressing. It fills in as you use the app.">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Tile label="AI usage (14 days)" value={data.totals.tokens.toLocaleString()} note="Tokens: how much EverMind has read and written" />
+        <Tile label="AI usage (14 days)" value={data.totals.credits.toLocaleString()} note="Credits: how much AI work EverMind has done" />
         <Tile label="Conversations (14 days)" value={String(data.totals.conversations)} note="Chats started by your team" />
         <Tile label="Tasks completed" value={taskTotal ? `${donePct}%` : "—"} note={taskTotal ? `${data.tasks.done} of ${taskTotal} tasks` : "No tasks yet"} />
         <Tile label="Decisions approved" value={String(data.decisions.approved)} note={`${data.decisions.proposed} awaiting a decision`} />
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
-        <BarChart title="AI usage" unit="tokens" bars={data.days.map((d) => ({ label: fmtDay(d.day), full: fmtDay(d.day), value: d.tokens }))} />
+        <BarChart title="AI usage" unit="credits" bars={data.days.map((d) => ({ label: fmtDay(d.day), full: fmtDay(d.day), value: d.credits }))} />
         <BarChart title="Conversations started" unit="conversations" bars={data.days.map((d) => ({ label: fmtDay(d.day), full: fmtDay(d.day), value: d.conversations }))} />
       </div>
 

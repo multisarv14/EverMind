@@ -31,6 +31,7 @@ export async function POST(request: Request) {
   if (withAi) {
     try {
       const summary = await ask(session, {
+        feature: "reports",
         system:
           "You are EverMind, an AI Executive writing for the CEO. Read the company status report and write a concise executive summary in Markdown: 3-5 bullets on what matters most, then **Risks** and **Recommended next steps**. Under 180 words. Use only facts in the report; do not invent numbers.",
         prompt: markdown,

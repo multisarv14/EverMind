@@ -20,7 +20,8 @@ Run EverMind on a public HTTPS address (for example `https://app.<our-domain>`),
    - `APP_URL`: the final public https address.
    - `SMTP_URL` and `MAIL_FROM`: real SMTP, for invitations and password reset. Without SMTP, emails are only printed in the logs.
    - `ANTHROPIC_API_KEY`: **leave blank for now.** We add it in phase 2.
-   - Optional: `FREE_MONTHLY_TOKENS` (default 50000), `FREE_SEATS`, `LEARNING_HOUR_UTC` (default 21).
+   - Optional: `FREE_MONTHLY_CREDITS` (default 50000), `FREE_SEATS`, `LEARNING_HOUR_UTC` (default 21).
+   - Payments (can come later): the `RAZORPAY_*` values. Follow "One-time Razorpay setup" in `docs/ONBOARDING.md` §6.8, test mode first.
 3. **Run:** `docker compose up -d --build`, then check `curl localhost:3000/api/health`.
 4. **HTTPS and domain:** put Caddy or Nginx in front, proxying to port 3000, with a Let's Encrypt certificate. Note that cookies and links need https.
 5. **Database:** choose one.
@@ -39,6 +40,7 @@ Run EverMind on a public HTTPS address (for example `https://app.<our-domain>`),
 - [ ] `/api/health` returns ok, and a restart of the containers keeps the data.
 - [ ] A backup file exists and a restore into a test DB works.
 - [ ] Chat shows a clear "AI is not connected yet" style message and nothing crashes, because the key is blank.
+- [ ] `/pricing` loads. With Razorpay test keys: subscribing to Pro and buying a pack change the plan and credits in Settings → Plan & billing, and the Razorpay webhook log shows 200 responses.
 
 ## Notes for the developer
 - Required env vars: `MONGODB_URI`, `AUTH_SECRET`. The rest have defaults.

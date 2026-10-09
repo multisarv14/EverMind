@@ -1,7 +1,6 @@
 import type { Session } from "@/lib/auth";
 import { conversations, decisions, projects, tasks, users } from "@/lib/db";
-import { planOf } from "@/lib/plans";
-import { tokensUsed } from "@/lib/usage";
+import { spendStatus } from "@/lib/entitlements";
 
 const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -23,8 +22,7 @@ export async function buildReport(session: Session, days: number) {
 
   const count = (s: string) => taskList.filter((t) => t.status === s).length;
   const doneInPeriod = taskList.filter((t) => t.status === "done" && t.updatedAt >= since).length;
-  const plan = planOf(session.company.plan);
-  const used = await tokensUsed(companyId);
+  const { plan, used } = await spendStatus(session.company);
   const open = taskList.filter((t) => t.status !== "done");
   const overdue = open.filter((t) => t.due && t.due < fmt(new Date()));
 
@@ -38,7 +36,7 @@ export async function buildReport(session: Session, days: number) {
   lines.push(`- **Decisions:** ${decisionList.filter((d) => d.status === "approved").length} approved · ${decisionList.filter((d) => d.status === "proposed").length} awaiting a decision · ${decisionList.filter((d) => d.status === "rejected").length} rejected`);
   lines.push(`- **Conversations with EverMind:** ${chats} in the last ${days} days`);
   lines.push(`- **Team:** ${members.length} member${members.length === 1 ? "" : "s"}`);
-  lines.push(`- **AI usage this month:** ${used.toLocaleString()} of ${plan.monthlyTokens.toLocaleString()} tokens (${plan.name} plan)`, "");
+  lines.push(`- **AI usage this month:** ${used.toLocaleString()} of ${plan.monthlyCredits.toLocaleString()} credits (${plan.name} plan)`, "");
 
   lines.push("## Projects");
   if (projectList.length === 0) lines.push("_No projects yet._");

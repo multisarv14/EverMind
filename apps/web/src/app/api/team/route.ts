@@ -1,7 +1,7 @@
 import { invites, users } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { can } from "@/constants/team";
-import { planOf } from "@/lib/plans";
+import { effectivePlan } from "@/lib/entitlements";
 import { json, unauthorized } from "@/lib/http";
 
 export async function GET() {
@@ -27,6 +27,6 @@ export async function GET() {
       role: m.role ?? "owner",
     })),
     invites: pending.map((i) => ({ id: i._id.toString(), email: i.email, role: i.role })),
-    seats: { used: members.length + pending.length, max: planOf(session.company.plan).seats },
+    seats: { used: members.length + pending.length, max: effectivePlan(session.company).seats },
   });
 }

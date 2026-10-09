@@ -53,7 +53,7 @@ const compare = [
 ];
 
 const faqs = [
-  { q: "Is EverMind free?", a: "You can create a company account and start for free. No credit card is needed." },
+  { q: "Is EverMind free?", a: "You can create a company account and start for free. No credit card is needed. Pro and Business plans add more AI credits and seats; see the pricing page." },
   { q: "What can it do today?", a: "It understands your goal, plans the work, recommends decisions, drafts documents and code, and remembers every conversation. It can’t yet take actions outside the chat, like sending emails or deploying software — agents that do that are next." },
   { q: "Is my data private?", a: "Your account and conversations sit behind your login and are not shown to other users. To write answers, your messages are sent to Anthropic’s Claude." },
   { q: "Which languages does it speak?", a: "English, Marathi and Hindi, among others. It replies in the language you write in." },
@@ -79,6 +79,7 @@ export default async function LandingPage() {
           <a href="#how" className="hover:text-white">How it works</a>
           <a href="#team" className="hover:text-white">AI team</a>
           <a href="#faq" className="hover:text-white">FAQ</a>
+          <Link href="/pricing" className="hover:text-white">Pricing</Link>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -288,6 +289,7 @@ export default async function LandingPage() {
               <li><a href="#how" className="hover:text-white">How it works</a></li>
               <li><a href="#team" className="hover:text-white">AI team</a></li>
               <li><a href="#faq" className="hover:text-white">FAQ</a></li>
+              <li><Link href="/pricing" className="hover:text-white">Pricing</Link></li>
             </ul>
           </div>
           <div>

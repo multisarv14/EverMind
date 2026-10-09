@@ -1,13 +1,31 @@
 // A tiny fake of the Anthropic Messages API, so tests never need a real key or spend money.
+// It also fakes the few Razorpay endpoints EverMind calls (under /v1/subscriptions and /v1/payment_links).
 import http from "node:http";
 
 const PORT = Number(process.env.MOCK_CLAUDE_PORT ?? 9999);
+const razorpayCalls = [];
+let seq = 0;
+
+function razorpay(req, res, body) {
+  const j = JSON.parse(body || "{}");
+  razorpayCalls.push({ path: req.url, body: j });
+  res.writeHead(200, { "content-type": "application/json" });
+  if (req.url.endsWith("/cancel")) return res.end(JSON.stringify({ id: req.url.split("/")[3], status: "cancelled" }));
+  const id = `${req.url.includes("payment_links") ? "plink" : "sub"}_test${++seq}`;
+  return res.end(JSON.stringify({ id, short_url: `https://rzp.test/${id}` }));
+}
 
 http
   .createServer((req, res) => {
     let body = "";
     req.on("data", (c) => (body += c));
     req.on("end", () => {
+      if (req.url === "/__razorpay") {
+        res.writeHead(200, { "content-type": "application/json" });
+        return res.end(JSON.stringify(razorpayCalls));
+      }
+      if (req.url.startsWith("/v1/subscriptions") || req.url.startsWith("/v1/payment_links")) return razorpay(req, res, body);
+
       const j = JSON.parse(body || "{}");
       const last = String(j.messages?.at(-1)?.content ?? "");
       const props = j.output_config?.format?.schema?.properties ?? {};

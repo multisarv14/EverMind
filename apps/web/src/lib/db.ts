@@ -20,7 +20,23 @@ export interface ChatMessage {
   createdAt: Date;
 }
 
+export type BillingStatus = "active" | "past_due" | "cancelled";
+
+/** The company's paid subscription, kept up to date by the payment gateway's webhooks. */
+export interface BillingInfo {
+  status: BillingStatus;
+  interval: "monthly" | "yearly";
+  subscriptionId: string;
+  /** Start of the paid period; monthly credit allowances are counted from this date. */
+  periodStart?: Date;
+  periodEnd?: Date;
+  cancelAtPeriodEnd?: boolean;
+  /** After a failed renewal the paid plan keeps working until this moment. */
+  graceUntil?: Date;
+}
+
 export interface CompanyDoc {
+  billing?: BillingInfo;
   lastLearningAt?: Date;
   industry?: string;
   /** What the company does, in the owner's words. */
@@ -52,10 +68,17 @@ export interface ProjectDoc {
 }
 
 export interface UsageDoc {
-  _id: string; // `${companyId}:${YYYY-MM}`
+  _id: string; // `${companyId}:${window}`, window = YYYY-MM or the date the billing month started
   companyId: ObjectId;
   month: string;
+  /** Raw input + output tokens. */
   tokens: number;
+  /** Credits used in this window (absent on records from before credits existed). */
+  credits?: number;
+  costMicros?: number;
+  /** Set once the 80% / 100% emails for this window were sent. */
+  warned80?: boolean;
+  warned100?: boolean;
 }
 
 export interface UpgradeRequestDoc {
@@ -117,6 +140,58 @@ export interface DailyUsageDoc {
   companyId: ObjectId;
   day: string;
   tokens: number;
+  credits?: number;
+  costMicros?: number;
+}
+
+/** One AI call: what it cost us and what it cost the customer. */
+export interface UsageEventDoc {
+  companyId: ObjectId;
+  userId?: ObjectId;
+  feature: string;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  cacheWriteTokens: number;
+  cacheReadTokens: number;
+  costMicros: number;
+  credits: number;
+  /** True when the reply was stopped and the cost is an estimate. */
+  estimated?: boolean;
+  createdAt: Date;
+}
+
+/** Extra credits (a purchased pack or an admin grant), used after the monthly allowance. */
+export interface CreditGrantDoc {
+  companyId: ObjectId;
+  source: "pack" | "admin";
+  packId?: string;
+  /** Gateway payment id for packs; unique, so a repeated webhook never grants twice. */
+  paymentId?: string;
+  credits: number;
+  remaining: number;
+  note?: string;
+  createdAt: Date;
+  expiresAt: Date;
+}
+
+export interface PaymentDoc {
+  companyId: ObjectId;
+  kind: "subscription" | "pack";
+  plan?: string;
+  packId?: string;
+  /** Amount in paise, as charged (GST included). */
+  amount: number;
+  currency: string;
+  status: "captured" | "failed";
+  gatewayPaymentId: string;
+  createdAt: Date;
+}
+
+export interface BillingEventDoc {
+  _id: string; // the gateway's event id
+  type: string;
+  createdAt: Date;
 }
 
 export interface FeedbackDoc {
@@ -201,6 +276,12 @@ async function database() {
       db.collection<RateLimitDoc>("rateLimits").createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 }),
       db.collection<PasswordResetDoc>("passwordResets").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       db.collection<PasswordResetDoc>("passwordResets").createIndex({ userId: 1 }),
+      db.collection<UsageEventDoc>("usageEvents").createIndex({ companyId: 1, createdAt: -1 }),
+      db.collection<CreditGrantDoc>("creditGrants").createIndex({ companyId: 1, expiresAt: 1 }),
+      db.collection<CreditGrantDoc>("creditGrants").createIndex({ paymentId: 1 }, { unique: true, partialFilterExpression: { paymentId: { $type: "string" } } }),
+      db.collection<PaymentDoc>("payments").createIndex({ gatewayPaymentId: 1 }, { unique: true }),
+      db.collection<PaymentDoc>("payments").createIndex({ companyId: 1, createdAt: -1 }),
+      db.collection("companies").createIndex({ "billing.subscriptionId": 1 }, { sparse: true }),
     ]);
     globalForMongo.indexed = true;
   }
@@ -238,6 +319,15 @@ export const usage = async (): Promise<Collection<UsageDoc>> =>
   (await database()).collection<UsageDoc>("usage");
 export const upgradeRequests = async (): Promise<Collection<UpgradeRequestDoc>> =>
   (await database()).collection<UpgradeRequestDoc>("upgradeRequests");
+
+export const usageEvents = async (): Promise<Collection<UsageEventDoc>> =>
+  (await database()).collection<UsageEventDoc>("usageEvents");
+export const creditGrants = async (): Promise<Collection<CreditGrantDoc>> =>
+  (await database()).collection<CreditGrantDoc>("creditGrants");
+export const payments = async (): Promise<Collection<PaymentDoc>> =>
+  (await database()).collection<PaymentDoc>("payments");
+export const billingEvents = async (): Promise<Collection<BillingEventDoc>> =>
+  (await database()).collection<BillingEventDoc>("billingEvents");
 
 export type UserRecord = WithId<UserDoc>;
 export type ConversationRecord = WithId<ConversationDoc>;

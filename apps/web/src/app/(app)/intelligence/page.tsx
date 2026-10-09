@@ -191,7 +191,7 @@ export default function IntelligencePage() {
             <summary className="cursor-pointer list-none text-[13px] font-medium text-white/60 hover:text-white">Technical details</summary>
             <dl className="mt-4 grid gap-4 text-[13px] sm:grid-cols-3">
               <div><dt className="text-white/45">AI model</dt><dd className="mt-0.5 text-white">{status!.model}</dd><dd className="text-[12px] text-white/40">The AI that writes EverMind&apos;s answers.</dd></div>
-              <div><dt className="text-white/45">Tokens used this month</dt><dd className="mt-0.5 text-white">{formatTokens(me!.usage.used)} of {formatTokens(me!.usage.limit)}</dd><dd className="text-[12px] text-white/40">Tokens measure how much EverMind reads and writes. Plan: {me!.plan.name}.</dd></div>
+              <div><dt className="text-white/45">Credits used this month</dt><dd className="mt-0.5 text-white">{formatTokens(me!.usage.used)} of {formatTokens(me!.usage.limit)}{me!.usage.packBalance > 0 && ` · ${formatTokens(me!.usage.packBalance)} pack credits`}</dd><dd className="text-[12px] text-white/40">Credits measure how much AI work EverMind does. Plan: {me!.plan.name}.</dd></div>
               <div><dt className="text-white/45">AI connection</dt><dd className="mt-0.5 text-white">{aiReady ? "Connected" : "Not connected"}</dd><dd className="text-[12px] text-white/40">Needs an Anthropic API key on the server.</dd></div>
             </dl>
           </details>

@@ -28,6 +28,9 @@ AUTH_SECRET="test-secret-test-secret-test-secret-123" \
 ANTHROPIC_API_KEY=sk-test ANTHROPIC_BASE_URL=http://localhost:9999 \
 FREE_MONTHLY_TOKENS=1000000 FREE_SEATS=3 LEARNING_SCHEDULER=off SIGNUP_LIMIT_PER_HOUR=1000 \
 MAIL_OUTBOX_DIR="$OUTBOX" APP_URL="http://localhost:$PORT" \
+RAZORPAY_KEY_ID=rzp_test RAZORPAY_KEY_SECRET=secret RAZORPAY_WEBHOOK_SECRET=whsec-test \
+RAZORPAY_API_URL=http://localhost:9999/v1 RAZORPAY_PLAN_PRO_MONTHLY=plan_pro_m RAZORPAY_PLAN_PRO_YEARLY=plan_pro_y \
+RAZORPAY_PLAN_BUSINESS_MONTHLY=plan_biz_m RAZORPAY_PLAN_BUSINESS_YEARLY=plan_biz_y \
 setsid npx next dev -p $PORT >"$LOG" 2>&1 &
 APP=$!
 
@@ -45,4 +48,4 @@ for _ in $(seq 1 90); do
 done
 curl -s localhost:$PORT/api/health | grep -q '"ok":true' || { echo "App did not start. Log:"; tail -20 "$LOG"; exit 1; }
 
-BASE_URL="http://localhost:$PORT" MAIL_OUTBOX_DIR="$OUTBOX" node --test --test-concurrency=1 tests/*.test.mjs
+BASE_URL="http://localhost:$PORT" MAIL_OUTBOX_DIR="$OUTBOX" RAZORPAY_WEBHOOK_SECRET=whsec-test MOCK_URL=http://localhost:9999 node --test --test-concurrency=1 tests/*.test.mjs

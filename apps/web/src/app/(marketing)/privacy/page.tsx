@@ -29,6 +29,7 @@ export default function PrivacyPage() {
           body: [
             "To generate answers, the messages you send, together with the company information, project instructions and knowledge needed to answer them, are sent to our AI provider, Anthropic. We rely on our providers to protect this information and use it only to provide the service to us.",
             "We also use providers for hosting, the database that stores your content, and (when enabled) sending emails such as invitations and password resets. We may share information if the law requires it.",
+            "Payments are handled by Razorpay. Your card, UPI or bank details go directly to Razorpay and are never stored by EverMind; we keep only the payment reference, amount and status.",
           ],
         },
         {

@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // Pages anyone can open. Sending signed-in users on to the app is done by the pages themselves
 // (they check the session for real); the cookie alone can be stale, and acting on it here
 // caused redirect loops after a password reset.
-const PUBLIC_PAGES = ["/", "/login", "/signup", "/terms", "/privacy", "/forgot", "/reset"];
+const PUBLIC_PAGES = ["/", "/pricing", "/login", "/signup", "/terms", "/privacy", "/forgot", "/reset"];
 
 // Optimistic gate only: the real session check happens in the API routes
 // (currentUser) and the (app) layout.
@@ -12,7 +12,9 @@ export function proxy(request: NextRequest) {
   const hasSession = request.cookies.has("evermind_session");
 
   if (pathname.startsWith("/api/")) {
-    if (pathname.startsWith("/api/auth/") || pathname === "/api/health" || hasSession) return NextResponse.next();
+    // The payment webhook has no session; it is checked by its signature instead.
+    const open = pathname.startsWith("/api/auth/") || pathname === "/api/health" || pathname === "/api/billing/webhook";
+    if (open || hasSession) return NextResponse.next();
     return NextResponse.json({ error: "Please sign in." }, { status: 401 });
   }
 

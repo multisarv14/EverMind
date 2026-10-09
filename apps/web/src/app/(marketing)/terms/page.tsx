@@ -48,7 +48,11 @@ export default function TermsPage() {
         {
           title: "Plans, limits and payment",
           body: [
-            "The Free plan includes a monthly allowance of AI usage and a limited number of team members. Paid plans, prices and billing terms will be shown before you buy. Usage limits may change with notice.",
+            "The Free plan includes a monthly allowance of AI credits and a limited number of team members. Pro and Business plans are paid monthly or yearly in advance and renew automatically until cancelled. Prices are shown on the pricing page in Indian rupees and exclude GST, which is added at checkout.",
+            "AI credits measure AI usage. The monthly allowance resets each month and does not carry over. Credit packs can be bought on paid plans; they are used after the monthly allowance and expire 12 months after purchase.",
+            "You can cancel anytime from Settings. The plan keeps working until the end of the period already paid for, then the company moves to the Free plan; your data is kept. If a renewal payment fails, the plan keeps working for 7 days while you fix the payment.",
+            "Payments are processed by Razorpay. Except where the law requires otherwise, payments are not refundable; contact [support email] within [7] days if you were charged by mistake. Prices and allowances may change with at least [30] days' notice by email.",
+            "EverMind plans are sold by [company name]. They are not Anthropic or Claude subscriptions.",
           ],
         },
         {

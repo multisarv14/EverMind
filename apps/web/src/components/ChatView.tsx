@@ -479,8 +479,8 @@ export default function ChatView({ id }: { id?: string }) {
               <div role="alert" className="rounded-xl bg-rose-500/10 px-4 py-3 text-[13px] text-rose-300">
                 {error}
                 {limitReached && (
-                  <Link href="/settings" className="ml-2 font-medium text-white underline">
-                    View plans
+                  <Link href="/settings?tab=plan" className="ml-2 font-medium text-white underline">
+                    Buy credits or upgrade
                   </Link>
                 )}
               </div>

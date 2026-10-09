@@ -4,8 +4,7 @@ import { conversations, knowledge, projects, type ChatMessage } from "@/lib/db";
 import { AGENT_TRAINING } from "@/constants/agentTraining";
 import { currentSession } from "@/lib/auth";
 import { can } from "@/constants/team";
-import { planOf } from "@/lib/plans";
-import { addTokens, tokensUsed } from "@/lib/usage";
+import { recordSpend, spendStatus, limitMessage } from "@/lib/entitlements";
 import { forbidden, json, readBody, unauthorized } from "@/lib/http";
 import { rateLimit } from "@/lib/ratelimit";
 import { systemPromptFor } from "@/lib/persona";
@@ -40,17 +39,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const plan = planOf(company.plan);
-  const usedBefore = await tokensUsed(company._id);
-  if (usedBefore >= plan.monthlyTokens) {
-    return json(
-      {
-        error: `Your company has used all ${plan.monthlyTokens.toLocaleString()} tokens on the ${plan.name} plan this month. Upgrade to keep going.`,
-        code: "limit_reached",
-      },
-      402
-    );
-  }
+  const spend = await spendStatus(company);
+  if (spend.blocked) return json({ error: limitMessage(spend.plan), code: "limit_reached" }, 402);
 
   const body = await readBody(request);
   const text = String(body.message ?? "").trim();
@@ -140,9 +130,10 @@ export async function POST(request: Request) {
 
       let reply = "";
       let aborted = false;
+      const model = process.env.ANTHROPIC_MODEL || "claude-opus-5-5";
       try {
         const response = client.messages.stream({
-          model: process.env.ANTHROPIC_MODEL ?? "claude-opus-5-5",
+          model,
           max_tokens: 16000,
           system,
           messages,
@@ -167,16 +158,24 @@ export async function POST(request: Request) {
           send(controller, { type: "text", text: note });
         }
 
-        const spent = final.usage.input_tokens + final.usage.output_tokens;
-        await addTokens(company._id, spent);
+        const spent = await recordSpend(company, { model, usage: final.usage, feature: "chat", userId: user._id });
         send(controller, {
           type: "done",
-          usage: { used: usedBefore + spent, limit: plan.monthlyTokens },
+          usage: { used: spent.used ?? spend.used, limit: spend.allowance, packBalance: spend.packBalance },
         });
       } catch (error) {
         if (aborted) {
-          // Charge a rough estimate (about 4 characters per token) for what was generated.
-          await addTokens(company._id, Math.ceil((system.length + JSON.stringify(messages).length + reply.length) / 4));
+          // Charge a rough estimate (about 4 characters per token) for what was read and generated.
+          await recordSpend(company, {
+            model,
+            usage: {
+              input_tokens: Math.ceil((system.length + JSON.stringify(messages).length) / 4),
+              output_tokens: Math.ceil(reply.length / 4),
+            },
+            feature: "chat",
+            userId: user._id,
+            estimated: true,
+          });
           return;
         }
         const message =

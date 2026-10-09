@@ -32,6 +32,7 @@ export async function POST() {
 
   try {
     const text = await ask(session, {
+      feature: "agents",
       system:
         "You help a company choose which of EverMind's specialist agents to switch on. Pick 4 to 8 agents that matter most for this specific business, most important first. For each, give a reason (max 16 words) specific to what the company does, not generic. Only use the agent ids provided. Reply only with JSON matching the schema.",
       prompt: `Company: ${company.name}\nIndustry: ${industry}\nTeam size: ${company.teamSize}\nWhat the company does: ${company.about || "(not described)"}\n\nAvailable agents:\n${catalogue}`,

@@ -14,6 +14,9 @@ export const mailConfigured = () => Boolean(process.env.SMTP_URL);
 /** The public address of the app, for links inside emails. */
 export const appUrl = (request: Request) => process.env.APP_URL ?? new URL(request.url).origin;
 
+/** The public address for emails sent outside a request (background jobs, webhooks). */
+export const publicUrl = () => process.env.APP_URL ?? "http://localhost:3000";
+
 /**
  * Sends an email through the SMTP server in SMTP_URL (e.g. smtp://user:pass@smtp.example.com:587).
  * Never throws: a mail problem must not break sign-up, invites or password reset.

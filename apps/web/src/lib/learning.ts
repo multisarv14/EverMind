@@ -77,6 +77,7 @@ export async function runLearning(company: CompanyRecord): Promise<{ created: nu
   let facts: string[] = [];
   try {
     const text = await askCompany(company, {
+      feature: "learning",
       system: SYSTEM,
       prompt: `Company: ${company.name}\n\nALREADY KNOWN OR SUGGESTED:\n${clip(existing, 5000) || "(nothing yet)"}\n\n${poorly.length ? `ANSWERS THE TEAM RATED POORLY:\n${poorly.join("\n")}\n\n` : ""}RECENT CONVERSATIONS:\n${transcript}`,
       maxTokens: 800,

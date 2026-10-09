@@ -30,7 +30,9 @@ export async function GET() {
     (await decisions()).find({ companyId }, { projection: { status: 1 } }).toArray(),
   ]);
 
-  const tokensByDay = new Map(usageDocs.map((u) => [u.day, u.tokens]));
+  // Days from before credits existed only have raw tokens.
+  const creditsOf = (u: { credits?: number; tokens: number }) => u.credits ?? u.tokens;
+  const creditsByDay = new Map(usageDocs.map((u) => [u.day, creditsOf(u)]));
   const chatsByDay = new Map<string, number>();
   const chatsByUser = new Map<string, number>();
   for (const c of chats) {
@@ -42,9 +44,9 @@ export async function GET() {
   const count = <T extends { status: string }>(list: T[], s: string) => list.filter((x) => x.status === s).length;
 
   return json({
-    days: days.map((d) => ({ day: d, tokens: tokensByDay.get(d) ?? 0, conversations: chatsByDay.get(d) ?? 0 })),
+    days: days.map((d) => ({ day: d, credits: creditsByDay.get(d) ?? 0, conversations: chatsByDay.get(d) ?? 0 })),
     totals: {
-      tokens: usageDocs.reduce((a, u) => a + u.tokens, 0),
+      credits: usageDocs.reduce((a, u) => a + creditsOf(u), 0),
       conversations: chats.length,
     },
     tasks: { todo: count(taskDocs, "todo"), doing: count(taskDocs, "doing"), done: count(taskDocs, "done") },

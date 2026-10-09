@@ -202,7 +202,8 @@ test("chat streams, saves the conversation, counts tokens and takes feedback", a
 
   const convo = await c.get(`/api/conversations/${r.conversationId}`);
   assert.equal(convo.data.messages.length, 2);
-  assert.equal((await c.get("/api/auth/me")).data.usage.used - before, 25);
+  // 5 input + 20 output Opus tokens = $0.00042 = 66 credits (see lib/pricing.ts)
+  assert.equal((await c.get("/api/auth/me")).data.usage.used - before, 66);
 
   const follow = await c.chat("And the budget?", { conversationId: r.conversationId });
   assert.equal(follow.conversationId, r.conversationId);
@@ -247,10 +248,10 @@ test("reports and analytics return real data", async () => {
   const an = (await c.get("/api/analytics")).data;
   assert.equal(an.days.length, 14);
   assert.equal(an.tasks.todo, 1);
-  assert.ok(an.totals.tokens > 0);
+  assert.ok(an.totals.credits > 0);
 });
 
-test("plan: usage is capped on the free plan and upgrades are only requests", async () => {
+test("plan: without online payment an upgrade can still be requested", async () => {
   const c = await newCompany("Plan");
   const me = (await c.get("/api/auth/me")).data;
   assert.equal(me.plan.id, "free");

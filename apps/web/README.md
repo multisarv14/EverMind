@@ -46,12 +46,14 @@ report data, analytics, team, settings). AI features show a clear "AI is not con
 | `ANTHROPIC_API_KEY` | — | Turns on the AI |
 | `ANTHROPIC_MODEL` | `claude-opus-5-5` | Model for chat and AI actions. A cheaper model (e.g. `claude-sonnet-5-5`) cuts cost roughly in half |
 | `ANTHROPIC_LEARNING_MODEL` | same as above | Model for the nightly learning job |
-| `FREE_MONTHLY_TOKENS` | `50000` | Token allowance per company on the Free plan |
+| `FREE_MONTHLY_CREDITS` | `50000` | AI credit allowance per company per month on the Free plan (`FREE_MONTHLY_TOKENS` still works) |
 | `FREE_SEATS` | `3` | Team members allowed on the Free plan |
 | `APP_URL` | the request's address | Public address of the site, used for links in emails and in sitemap/robots |
 | `SMTP_URL` | — | Turns on real emails (invitations, password reset), e.g. `smtp://user:pass@smtp.example.com:587`. Without it nothing is sent; in development the email is printed in the server console |
 | `MAIL_FROM` | `EverMind <no-reply@localhost>` | The "from" address of emails |
 | `SIGNUP_LIMIT_PER_HOUR` | `15` | Sign-ups allowed per IP address per hour |
+| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | — | Turn on online payments (plans and credit packs). Without them, "Upgrade" records a request |
+| `RAZORPAY_PLAN_PRO_MONTHLY` / `_PRO_YEARLY` / `_BUSINESS_MONTHLY` / `_BUSINESS_YEARLY` | — | Razorpay plan ids for each paid plan |
 | `LEARNING_SCHEDULER` | on | Set to `off` to disable the nightly learning job |
 | `LEARNING_HOUR_UTC` | `21` | Hour (UTC) when the nightly job runs (21 = 02:30 India) |
 
@@ -71,8 +73,8 @@ report data, analytics, team, settings). AI features show a clear "AI is not con
 npm test
 ```
 
-Starts a throw-away database and a fake Claude (no real key, no cost), runs 17 checks of sign-up, login, password reset,
-team roles, company isolation, chat, learning, reports and plan limits, then cleans up. Needs ports 3200 and 9999 free.
+Starts a throw-away database and a fake Claude and Razorpay (no real key, no cost), runs 20 checks of sign-up, login, password reset,
+team roles, company isolation, chat, learning, reports, credits, subscriptions and credit packs, then cleans up. Needs ports 3200 and 9999 free.
 
 ## Deploy
 
@@ -101,5 +103,6 @@ Answers are saved to `scripts/eval-out/` so you can read them.
 
 - The nightly learning job only runs while the server is running (it does not run on serverless hosts or a sleeping Codespace).
 - Login and sign-up are rate-limited (MongoDB-backed).
-- There is no payment system yet: "Upgrade" records a request.
+- Plans, prices and credit packs live in `src/lib/plans.ts`; model costs and credits in `src/lib/pricing.ts`. Payments go through
+  Razorpay when its keys are set (see `docs/ONBOARDING.md`, "Billing"); `node scripts/billing-admin.mjs report` compares revenue with AI cost.
 - The older C# prototype in `apps/api` is not used by this app.

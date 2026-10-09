@@ -37,6 +37,7 @@ export async function POST(request: Request) {
 
   try {
     const text = await ask(session, {
+      feature: "tasks",
       system:
         "You are EverMind, an AI Executive. Break the CEO's goal into 4 to 8 concrete, actionable tasks, ordered by sequence. Each title is a short imperative sentence (under 90 characters). Reply only with JSON matching the schema.",
       prompt: `Company: ${session.company.name}\nGoal: ${goal}`,

@@ -1,7 +1,7 @@
 import { invites, users } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { can } from "@/constants/team";
-import { planOf } from "@/lib/plans";
+import { effectivePlan } from "@/lib/entitlements";
 import { forbidden, json, readBody, unauthorized } from "@/lib/http";
 import { appUrl, sendMail } from "@/lib/mail";
 import { inviteEmail } from "@/lib/emails";
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     (await users()).countDocuments({ companyId }),
     (await invites()).countDocuments({ companyId }),
   ]);
-  const plan = planOf(session.company.plan);
+  const plan = effectivePlan(session.company);
   if (members + pending >= plan.seats) {
     return json(
       { error: `Your ${plan.name} plan includes ${plan.seats} seats. Upgrade to add more people.`, code: "seats_full" },

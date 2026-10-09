@@ -21,6 +21,7 @@ export async function POST(_request: Request, ctx: { params: Promise<{ id: strin
 
   try {
     const recommendation = await ask(session, {
+      feature: "decisions",
       system:
         systemPromptFor({
           name: session.user.name,

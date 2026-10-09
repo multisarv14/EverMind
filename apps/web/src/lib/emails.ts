@@ -1,4 +1,5 @@
-import type { Mail } from "@/lib/mail";
+import { publicUrl, type Mail } from "@/lib/mail";
+import type { Plan } from "@/lib/plans";
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
@@ -44,5 +45,48 @@ export function inviteEmail(to: string, inviter: string, company: string, role: 
       { label: "Accept the invitation", href: link },
       "If you weren't expecting this invitation, you can ignore this email."
     ),
+  };
+}
+
+const day = (d: Date) => d.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+
+export function usageEmail(to: string, name: string, company: string, plan: Plan, level: "high" | "full", packCredits: number, resets: Date): Mail {
+  const link = `${publicUrl()}/settings?tab=plan`;
+  const heading =
+    level === "high" ? `${company} has used 80% of this month's AI credits` : `${company} has used this month's AI credits`;
+  const detail =
+    level === "high"
+      ? `You're on the ${plan.name} plan with ${plan.monthlyCredits.toLocaleString()} credits a month. They reset on ${day(resets)}.`
+      : packCredits > 0
+        ? `EverMind keeps working using your ${packCredits.toLocaleString()} pack credits. The monthly allowance resets on ${day(resets)}.`
+        : `AI features are paused until ${day(resets)}. ${plan.topUps ? "Buy a credit pack or upgrade" : "Upgrade"} to keep going now.`;
+  return {
+    to,
+    subject: heading,
+    text: `Hi ${name},\n\n${heading}.\n${detail}\n\nPlans and credits: ${link}`,
+    html: layout(heading, [`Hi ${name},`, detail], { label: plan.topUps ? "Buy credits or upgrade" : "See plans", href: link }, "You get this email at most twice a month."),
+  };
+}
+
+export function paymentFailedEmail(to: string, name: string, company: string, plan: Plan, graceUntil: Date): Mail {
+  const link = `${publicUrl()}/settings?tab=plan`;
+  const detail = `We couldn't collect the renewal payment for ${company}'s ${plan.name} plan. Your plan keeps working until ${day(graceUntil)}; after that the company moves to the Free plan. No data is deleted.`;
+  return {
+    to,
+    subject: `Payment failed for ${company} on EverMind`,
+    text: `Hi ${name},\n\n${detail}\n\nUpdate your payment method: ${link}`,
+    html: layout("Your payment didn't go through", [`Hi ${name},`, detail], { label: "Update payment", href: link }, "If you already fixed this, you can ignore this email."),
+  };
+}
+
+export function receiptEmail(to: string, name: string, company: string, what: string, amountPaise: number, currency: string): Mail {
+  const link = `${publicUrl()}/settings?tab=plan`;
+  const amount = `${currency === "INR" ? "₹" : `${currency} `}${(amountPaise / 100).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
+  const detail = `We received ${amount} (GST included) from ${company} for ${what}. Thank you!`;
+  return {
+    to,
+    subject: `Payment received: ${what}`,
+    text: `Hi ${name},\n\n${detail}\n\nBilling: ${link}`,
+    html: layout("Payment received", [`Hi ${name},`, detail], { label: "View billing", href: link }, "Keep this email for your records."),
   };
 }
