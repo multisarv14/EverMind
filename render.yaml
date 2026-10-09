@@ -1,0 +1,21 @@
+# Render Blueprint for the EverMind web app (Render dashboard → New → Blueprint → this repo).
+# The database is MongoDB Atlas; the AI key is saved in it with apps/web/scripts/set-ai-key.mjs.
+services:
+  - type: web
+    name: evermind
+    runtime: docker
+    plan: free # sleeps when idle; switch to starter so the nightly learning job runs
+    region: singapore
+    dockerfilePath: ./apps/web/Dockerfile
+    dockerContext: ./apps/web
+    healthCheckPath: /api/health
+    buildFilter:
+      paths:
+        - apps/web/**
+    envVars:
+      - key: MONGODB_URI
+        sync: false # asked for when the Blueprint is created
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: AI_KEY_SECRET
+        generateValue: true # copy it from the dashboard for set-ai-key.mjs

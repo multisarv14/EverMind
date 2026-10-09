@@ -82,7 +82,7 @@ export async function runLearning(company: CompanyRecord): Promise<{ created: nu
       prompt: `Company: ${company.name}\n\nALREADY KNOWN OR SUGGESTED:\n${clip(existing, 5000) || "(nothing yet)"}\n\n${poorly.length ? `ANSWERS THE TEAM RATED POORLY:\n${poorly.join("\n")}\n\n` : ""}RECENT CONVERSATIONS:\n${transcript}`,
       maxTokens: 800,
       schema: SCHEMA,
-      model: process.env.ANTHROPIC_LEARNING_MODEL,
+      background: true,
     });
     facts = ((JSON.parse(text) as { facts?: { text?: string }[] }).facts ?? [])
       .map((f) => String(f.text ?? "").replace(/\s+/g, " ").trim())

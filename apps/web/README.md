@@ -34,7 +34,23 @@ npm run dev:all      # makes sure MongoDB is running, then starts the app on htt
 
 Generate a secret with: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
-Without `ANTHROPIC_API_KEY` everything except the AI features works (tasks, decisions log, knowledge,
+### Connecting the AI (key stored encrypted in the database)
+
+The AI key is not kept in the code or in `.env.local`. It is saved, encrypted, in MongoDB:
+
+```bash
+# once: the secret that encrypts the key (keep it safe; if it is lost, just save the key again)
+echo "AI_KEY_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")" >> .env.local
+
+node --env-file=.env.local scripts/set-ai-key.mjs set groq          # asks for the key, tests it, saves it
+node --env-file=.env.local scripts/set-ai-key.mjs set anthropic     # later: switch to Claude (same command)
+node --env-file=.env.local scripts/set-ai-key.mjs show              # which provider / model / key is in use
+```
+
+Providers: `groq`, `gemini`, `openrouter`, `anthropic`; an optional model id follows the provider. The running app
+switches within 30 seconds. With no saved key, `ANTHROPIC_API_KEY` from the environment is used, as before.
+
+Without an AI key everything except the AI features works (tasks, decisions log, knowledge,
 report data, analytics, team, settings). AI features show a clear "AI is not configured" message.
 
 ## Settings (environment variables)
@@ -43,7 +59,8 @@ report data, analytics, team, settings). AI features show a clear "AI is not con
 |---|---|---|
 | `MONGODB_URI` | `mongodb://localhost:27017/evermind` | Database connection |
 | `AUTH_SECRET` | — (required, 32+ chars) | Signs login cookies |
-| `ANTHROPIC_API_KEY` | — | Turns on the AI |
+| `AI_KEY_SECRET` | — | Encrypts the AI key saved with `scripts/set-ai-key.mjs` (32+ chars) |
+| `ANTHROPIC_API_KEY` | — | Turns on the AI when no key is saved in the database |
 | `ANTHROPIC_MODEL` | `claude-opus-5-5` | Model for chat and AI actions. A cheaper model (e.g. `claude-sonnet-5-5`) cuts cost roughly in half |
 | `ANTHROPIC_LEARNING_MODEL` | same as above | Model for the nightly learning job |
 | `FREE_MONTHLY_CREDITS` | `50000` | AI credit allowance per company per month on the Free plan (`FREE_MONTHLY_TOKENS` still works) |

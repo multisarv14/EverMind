@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { ObjectId } from "mongodb";
 import { conversations, knowledge, projects, type ChatMessage } from "@/lib/db";
 import { AGENT_TRAINING } from "@/constants/agentTraining";
@@ -8,6 +7,7 @@ import { recordSpend, spendStatus, limitMessage } from "@/lib/entitlements";
 import { forbidden, json, readBody, unauthorized } from "@/lib/http";
 import { rateLimit } from "@/lib/ratelimit";
 import { systemPromptFor } from "@/lib/persona";
+import { AI_NOT_CONFIGURED, aiConfig, describeLlmError, streamChat } from "@/lib/llm";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -24,12 +24,8 @@ export async function POST(request: Request) {
     return forbidden("Your role is read-only. Ask an admin to change your access.");
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return json(
-      { error: "The AI is not configured yet. Add ANTHROPIC_API_KEY to apps/web/.env.local and restart." },
-      503
-    );
-  }
+  const ai = await aiConfig();
+  if (!ai) return json({ error: AI_NOT_CONFIGURED, code: "ai_not_configured" }, 503);
 
   const limited = await rateLimit(`chat:user:${user._id.toString()}`, 30, 600);
   if (!limited.ok) {
@@ -114,7 +110,6 @@ export async function POST(request: Request) {
     projectInstructions: project?.instructions,
   });
 
-  const client = new Anthropic();
   const encoder = new TextEncoder();
   const send = (controller: ReadableStreamDefaultController, event: object) => {
     try {
@@ -130,29 +125,25 @@ export async function POST(request: Request) {
 
       let reply = "";
       let aborted = false;
-      const model = process.env.ANTHROPIC_MODEL || "claude-opus-5-5";
+      const model = ai.model;
+      // Stop button / closed tab: the signal stops the call, so we stop paying for a reply nobody is reading.
+      request.signal.addEventListener("abort", () => {
+        aborted = true;
+      });
       try {
-        const response = client.messages.stream({
+        const final = await streamChat(ai, {
           model,
-          max_tokens: 16000,
+          maxTokens: 16000,
           system,
           messages,
+          signal: request.signal,
+          onText: (delta) => {
+            reply += delta;
+            send(controller, { type: "text", text: delta });
+          },
         });
 
-        // Stop button / closed tab: stop paying for a reply nobody is reading.
-        request.signal.addEventListener("abort", () => {
-          aborted = true;
-          response.abort();
-        });
-
-        response.on("text", (delta) => {
-          reply += delta;
-          send(controller, { type: "text", text: delta });
-        });
-
-        const final = await response.finalMessage();
-
-        if (final.stop_reason === "refusal") {
+        if (final.refused) {
           const note = reply ? "\n\nI can't help with that request." : "I can't help with that request.";
           reply += note;
           send(controller, { type: "text", text: note });
@@ -178,14 +169,7 @@ export async function POST(request: Request) {
           });
           return;
         }
-        const message =
-          error instanceof Anthropic.AuthenticationError
-            ? "The Anthropic API key was rejected. Check ANTHROPIC_API_KEY."
-            : error instanceof Anthropic.RateLimitError
-              ? "Too many requests right now. Please try again in a moment."
-              : error instanceof Anthropic.APIError
-                ? `The AI service returned an error (${error.status}).`
-                : "Something went wrong while contacting the AI.";
+        const { message } = describeLlmError(error);
         console.error("chat error:", error);
         send(controller, { type: "error", message });
       } finally {

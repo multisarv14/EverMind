@@ -1,5 +1,6 @@
 import { companies } from "@/lib/db";
 import { runLearning } from "@/lib/learning";
+import { aiConfig } from "@/lib/llm";
 
 const HOUR = 60 * 60 * 1000;
 const g = globalThis as { __learningTimer?: ReturnType<typeof setInterval> };
@@ -7,6 +8,8 @@ const g = globalThis as { __learningTimer?: ReturnType<typeof setInterval> };
 async function tick() {
   // Run once a day, in one chosen UTC hour (default 21:00 UTC = 02:30 India time).
   if (new Date().getUTCHours() !== Number(process.env.LEARNING_HOUR_UTC ?? 21)) return;
+  // The AI can be connected or removed while the server runs, so check each time.
+  if (!(await aiConfig())) return;
 
   const col = await companies();
   const due = await col
@@ -34,7 +37,7 @@ async function tick() {
 /** Starts the nightly "what did EverMind learn today" job inside the running server. */
 export function startLearningScheduler() {
   if (g.__learningTimer) return;
-  if (process.env.LEARNING_SCHEDULER === "off" || !process.env.ANTHROPIC_API_KEY) return;
+  if (process.env.LEARNING_SCHEDULER === "off") return;
   const run = () => void tick().catch((e) => console.error("learning tick failed:", e));
   g.__learningTimer = setInterval(run, HOUR);
   // Also check shortly after start, so a restart never skips the nightly window.

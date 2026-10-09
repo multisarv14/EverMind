@@ -217,6 +217,19 @@ export interface PasswordResetDoc {
   expiresAt: Date;
 }
 
+/** The one AI connection for the whole app (_id "ai"), written by scripts/set-ai-key.mjs. */
+export interface AiSettingsDoc {
+  _id: string;
+  provider: "anthropic" | "groq" | "gemini" | "openrouter";
+  model: string;
+  learningModel?: string;
+  /** The API key, encrypted with AI_KEY_SECRET (AES-256-GCM, base64 parts). Never stored in plain text. */
+  key: { iv: string; tag: string; data: string };
+  /** Last 4 characters, so admins can tell which key is in use. */
+  keyHint: string;
+  updatedAt: Date;
+}
+
 export interface RateLimitDoc {
   _id: string;
   count: number;
@@ -319,6 +332,9 @@ export const usage = async (): Promise<Collection<UsageDoc>> =>
   (await database()).collection<UsageDoc>("usage");
 export const upgradeRequests = async (): Promise<Collection<UpgradeRequestDoc>> =>
   (await database()).collection<UpgradeRequestDoc>("upgradeRequests");
+
+export const aiSettings = async (): Promise<Collection<AiSettingsDoc>> =>
+  (await database()).collection<AiSettingsDoc>("settings");
 
 export const usageEvents = async (): Promise<Collection<UsageEventDoc>> =>
   (await database()).collection<UsageEventDoc>("usageEvents");
