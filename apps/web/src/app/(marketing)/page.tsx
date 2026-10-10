@@ -104,8 +104,8 @@ export default async function LandingPage() {
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Free to start · No credit card
           </p>
           <h1 className="mx-auto mt-6 max-w-[860px] text-[40px] font-bold leading-[1.1] sm:text-[60px]">
-            AI That Remembers.{" "}
-            <span className="bg-gradient-to-r from-sky-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+            <span className="block">AI That Remembers.</span>
+            <span className="block bg-gradient-to-r from-sky-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
               AI That Evolves.
             </span>
           </h1>

@@ -65,12 +65,12 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
   }
 
   const field =
-    "w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[14px] text-white outline-none transition placeholder:text-white/35 focus:border-violet-500/70 focus:bg-white/[0.06]";
-  const label = "mb-1.5 block text-[13px] font-medium text-white/75";
+    "w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-[14px] text-white outline-none transition placeholder:text-white/35 focus:border-violet-500/70 focus:bg-white/[0.06]";
+  const label = "mb-1 block text-[13px] font-medium text-white/75";
 
   return (
     <AuthLayout>
-        <h1 className="text-[30px] font-bold leading-tight">
+        <h1 className="text-[26px] font-bold leading-tight">
           {signup ? "Create your company account" : "Welcome back"}
         </h1>
         <p className="mt-2 text-[14px] text-white/60">
@@ -79,7 +79,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
             : "Sign in to your company workspace."}
         </p>
 
-        <form onSubmit={submit} className="mt-8 space-y-4">
+        <form onSubmit={submit} className="mt-5 space-y-3">
           {signup && !joining && (
             <div>
               <label htmlFor="company" className={label}>Company name</label>
@@ -95,6 +95,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
             </div>
           )}
           {signup && !joining && (
+            <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="teamSize" className={label}>Team size</label>
               <select
@@ -104,14 +105,12 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
                 onChange={(e) => setTeamSize(e.target.value)}
                 required
               >
-                <option value="" disabled>Select team size</option>
+                <option value="" disabled>Select size</option>
                 {TEAM_SIZES.map((t) => (
                   <option key={t} value={t} className="bg-[var(--card-bg)]">{t}</option>
                 ))}
               </select>
             </div>
-          )}
-          {signup && !joining && (
             <div>
               <label htmlFor="industry" className={label}>Company type</label>
               <select
@@ -121,11 +120,12 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
                 onChange={(e) => setIndustry(e.target.value)}
                 required
               >
-                <option value="" disabled>What kind of company is it?</option>
+                <option value="" disabled>Select type</option>
                 {INDUSTRIES.map((i) => (
                   <option key={i.id} value={i.id} className="bg-[var(--card-bg)]">{i.label}</option>
                 ))}
               </select>
+            </div>
             </div>
           )}
           {signup && !joining && (
@@ -177,7 +177,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
           <div>
             <div className="flex items-center justify-between">
               <label htmlFor="password" className={label}>Password</label>
-              {!signup && <Link href="/forgot" className="mb-1.5 text-[12px] text-violet-300 hover:underline">Forgot password?</Link>}
+              {!signup && <Link href="/forgot" className="mb-1 text-[12px] text-violet-300 hover:underline">Forgot password?</Link>}
             </div>
             <div className="relative">
               <input
@@ -211,7 +211,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
           <button
             type="submit"
             disabled={busy}
-            className="w-full rounded-xl bg-violet-600 py-3.5 text-[15px] font-medium text-white shadow-[0_0_24px_rgba(124,92,255,.45)] transition hover:bg-violet-500 disabled:opacity-60"
+            className="w-full rounded-xl bg-violet-600 py-3 text-[15px] font-medium text-white shadow-[0_0_24px_rgba(124,92,255,.45)] transition hover:bg-violet-500 disabled:opacity-60"
           >
             {busy ? "Please wait…" : signup ? "Create account" : "Sign in"}
           </button>
@@ -221,21 +221,21 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
           <button
             type="button"
             onClick={() => { setJoining((v) => !v); setError(""); }}
-            className="mt-5 w-full text-center text-[13px] text-violet-300 hover:underline"
+            className="mt-3 w-full text-center text-[13px] text-violet-300 hover:underline"
           >
             {joining ? "← Create a new company instead" : "Was your team already invited? Join with your email"}
           </button>
         )}
 
         {signup && (
-          <p className="mt-4 text-center text-[12px] leading-relaxed text-white/40">
+          <p className="mt-3 text-center text-[12px] leading-relaxed text-white/40">
             By creating an account you agree to the{" "}
             <Link href="/terms" target="_blank" className="text-white/60 underline hover:text-white">Terms</Link> and{" "}
             <Link href="/privacy" target="_blank" className="text-white/60 underline hover:text-white">Privacy Policy</Link>.
           </p>
         )}
 
-        <p className="mt-4 text-center text-[14px] text-white/60">
+        <p className="mt-3 text-center text-[14px] text-white/60">
           {signup ? "Already have an account?" : "New to EverMind?"}{" "}
           <Link href={signup ? "/login" : "/signup"} className="font-medium text-violet-300 hover:underline">
             {signup ? "Sign in" : "Create a company account"}
