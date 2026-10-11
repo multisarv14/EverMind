@@ -1,6 +1,6 @@
-import { knowledge, learnings } from "@/lib/db";
+import { findById, insert, knowledge, learnings } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
-import { canEdit, clip, forbidden, json, oid, readBody, unauthorized } from "@/lib/http";
+import { canEdit, clip, forbidden, json, docId, readBody, unauthorized } from "@/lib/http";
 
 // Approve (optionally after editing the wording) or dismiss a suggested fact.
 export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) {
@@ -8,16 +8,16 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
   if (!session) return unauthorized();
   if (!canEdit(session)) return forbidden();
 
-  const id = oid((await ctx.params).id);
+  const id = docId((await ctx.params).id);
   if (!id) return json({ error: "Not found." }, 404);
 
   const body = await readBody(request);
-  const col = await learnings();
-  const item = await col.findOne({ _id: id, companyId: session.company._id, status: "pending" });
+  const col = learnings();
+  const item = await findById(col, id, { companyId: session.company._id, status: "pending" });
   if (!item) return json({ error: "Not found." }, 404);
 
   if (body.action === "dismiss") {
-    await col.updateOne({ _id: id }, { $set: { status: "dismissed" } });
+    await col.doc(id).update({ status: "dismissed" });
     return json({ ok: true });
   }
 
@@ -26,7 +26,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
     if (text.length < 8) return json({ error: "That's too short to save." }, 400);
 
     const now = new Date();
-    await (await knowledge()).insertOne({
+    await insert(knowledge(), {
       companyId: session.company._id,
       title: `Learned: ${clip(text, 60)}`,
       content: text,
@@ -34,7 +34,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
       createdAt: now,
       updatedAt: now,
     });
-    await col.updateOne({ _id: id }, { $set: { status: "approved", text } });
+    await col.doc(id).update({ status: "approved", text });
     return json({ ok: true });
   }
 

@@ -1,10 +1,22 @@
-import { ObjectId } from "mongodb";
-import { conversations, knowledge, projects, type ChatMessage } from "@/lib/db";
+import {
+  appendMessage,
+  conversations,
+  findAll,
+  findById,
+  firestore,
+  knowledge,
+  messageId,
+  messagesOf,
+  projects,
+  readMessages,
+  type ChatMessage,
+  type Id,
+} from "@/lib/db";
 import { AGENT_TRAINING } from "@/constants/agentTraining";
 import { currentSession } from "@/lib/auth";
 import { can } from "@/constants/team";
 import { recordSpend, spendStatus, limitMessage } from "@/lib/entitlements";
-import { forbidden, json, readBody, unauthorized } from "@/lib/http";
+import { docId, forbidden, json, readBody, unauthorized } from "@/lib/http";
 import { rateLimit } from "@/lib/ratelimit";
 import { systemPromptFor } from "@/lib/persona";
 import { AI_NOT_CONFIGURED, aiConfig, describeLlmError, streamChat } from "@/lib/llm";
@@ -27,7 +39,7 @@ export async function POST(request: Request) {
   const ai = await aiConfig();
   if (!ai) return json({ error: AI_NOT_CONFIGURED, code: "ai_not_configured" }, 503);
 
-  const limited = await rateLimit(`chat:user:${user._id.toString()}`, 30, 600);
+  const limited = await rateLimit(`chat:user:${user._id}`, 30, 600);
   if (!limited.ok) {
     return json(
       { error: "You're sending messages very quickly. Please wait a minute and try again.", code: "rate_limited" },
@@ -48,47 +60,49 @@ export async function POST(request: Request) {
   if (!text) return json({ error: "Message is empty." }, 400);
   if (text.length > MAX_MESSAGE_CHARS) return json({ error: "Message is too long." }, 400);
 
-  const col = await conversations();
+  const col = conversations();
   const now = new Date();
   const userMessage: ChatMessage = { role: "user", content: text, createdAt: now };
 
-  let id: ObjectId;
+  let id: Id;
   let history: ChatMessage[];
-  let projectId: ObjectId | undefined;
+  let projectId: Id | undefined;
   let agentId = "";
 
   if (conversationId) {
-    if (!ObjectId.isValid(conversationId)) return json({ error: "Not found." }, 404);
-    const existing = await col.findOne({ _id: new ObjectId(conversationId), userId: user._id });
+    const existing = await findById(col, docId(conversationId), { userId: user._id });
     if (!existing) return json({ error: "Not found." }, 404);
     id = existing._id;
-    history = existing.messages;
+    history = await readMessages(existing, MAX_HISTORY);
     projectId = existing.projectId;
     agentId = existing.agent ?? "";
-    await col.updateOne({ _id: id }, { $push: { messages: userMessage }, $set: { updatedAt: now, depth } });
+    await appendMessage(id, userMessage, { depth });
   } else {
     if (requestedProject) {
-      if (!ObjectId.isValid(requestedProject)) return json({ error: "Project not found." }, 404);
-      const found = await (await projects()).findOne({
-        _id: new ObjectId(requestedProject),
-        companyId: company._id,
-      });
+      const found = await findById(projects(), docId(requestedProject), { companyId: company._id });
       if (!found) return json({ error: "Project not found." }, 404);
       projectId = found._id;
     }
 
     agentId = requestedAgent;
-    const created = await col.insertOne({
+    const ref = col.doc();
+    const batch = firestore().batch();
+    batch.create(ref, {
+      _id: ref.id,
       userId: user._id,
+      companyId: company._id,
       ...(projectId ? { projectId } : {}),
       ...(agentId ? { agent: agentId } : {}),
       depth,
       title: text.replace(/\s+/g, " ").slice(0, 60),
-      messages: [userMessage],
+      messageCount: 1,
+      lastMessage: text.slice(0, 2000),
       createdAt: now,
       updatedAt: now,
     });
-    id = created.insertedId;
+    batch.create(messagesOf(ref.id).doc(messageId(0)), { _id: messageId(0), ...userMessage });
+    await batch.commit();
+    id = ref.id;
     history = [];
   }
 
@@ -96,8 +110,8 @@ export async function POST(request: Request) {
     .slice(-MAX_HISTORY)
     .map(({ role, content }) => ({ role, content }));
 
-  const project = projectId ? await (await projects()).findOne({ _id: projectId, companyId: company._id }) : null;
-  const kb = await (await knowledge()).find({ companyId: company._id }).sort({ updatedAt: -1 }).limit(20).toArray();
+  const project = await findById(projects(), projectId, { companyId: company._id });
+  const kb = await findAll(knowledge().where("companyId", "==", company._id).orderBy("updatedAt", "desc").limit(20));
   const system = systemPromptFor({
     agentId,
     depth,
@@ -121,7 +135,7 @@ export async function POST(request: Request) {
 
   const stream = new ReadableStream({
     async start(controller) {
-      send(controller, { type: "meta", conversationId: id.toString() });
+      send(controller, { type: "meta", conversationId: id });
 
       let reply = "";
       let aborted = false;
@@ -174,13 +188,7 @@ export async function POST(request: Request) {
         send(controller, { type: "error", message });
       } finally {
         if (reply) {
-          await col.updateOne(
-            { _id: id },
-            {
-              $push: { messages: { role: "assistant", content: reply, createdAt: new Date() } },
-              $set: { updatedAt: new Date() },
-            }
-          );
+          await appendMessage(id, { role: "assistant", content: reply, createdAt: new Date() });
         }
         try {
           controller.close();

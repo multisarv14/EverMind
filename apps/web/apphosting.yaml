@@ -1,0 +1,40 @@
+# Firebase App Hosting settings for the EverMind web app (backend "evermind", region asia-southeast1).
+# Deploy from apps/web with: npx firebase deploy --only apphosting:evermind
+# Secrets live in Cloud Secret Manager (set with: npx firebase apphosting:secrets:set <name>), never in this file.
+
+runConfig:
+  cpu: 1
+  memoryMiB: 1024
+  concurrency: 80
+  minInstances: 0 # sleeps when idle; 1 keeps it warm (no cold start) at a monthly cost
+  maxInstances: 3
+
+env:
+  # Firestore: the server signs in as App Hosting's service account, so no key is needed.
+  - variable: FIREBASE_PROJECT_ID
+    value: evermind-1826e
+
+  # The public address, used for links in emails (invites, password reset), sitemap and robots.
+  - variable: APP_URL
+    value: https://evermind.multisarv.com
+
+  - variable: ANTHROPIC_MODEL
+    value: claude-opus-5-5
+
+  # The server sleeps between requests, so the in-process timer can't be relied on;
+  # Cloud Scheduler calls POST /api/cron/learning instead (with CRON_SECRET).
+  - variable: LEARNING_SCHEDULER
+    value: "off"
+
+  - variable: AUTH_SECRET
+    secret: evermind-auth-secret
+    availability: [RUNTIME]
+
+  # Must be the same secret the saved AI key was encrypted with.
+  - variable: AI_KEY_SECRET
+    secret: evermind-ai-key-secret
+    availability: [RUNTIME]
+
+  - variable: CRON_SECRET
+    secret: evermind-cron-secret
+    availability: [RUNTIME]

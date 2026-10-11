@@ -29,8 +29,8 @@ export async function PATCH(request: Request) {
 
   if (Object.keys(set).length === 0) return json({ error: "Nothing to update." }, 400);
 
-  await (await users()).updateOne({ _id: session.user._id }, { $set: set });
+  await users().doc(session.user._id).update(set);
   // Changing the password signed out every older session; keep this one.
-  if (set.passwordChangedAt) await startSession(session.user._id.toString());
+  if (set.passwordChangedAt) await startSession(session.user._id);
   return json({ ok: true });
 }

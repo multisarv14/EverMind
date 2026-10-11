@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
-import { aiSettings, type AiSettingsDoc } from "@/lib/db";
+import { aiSettings, findById, type AiSettingsDoc } from "@/lib/db";
 import { open } from "@/lib/secretBox";
 import type { TokenUsage } from "@/lib/pricing";
 
@@ -36,7 +36,7 @@ export async function aiConfig(): Promise<AiConfig | null> {
   if (g.__aiConfig && Date.now() - g.__aiConfig.at < CACHE_MS) return g.__aiConfig.value;
 
   let value: AiConfig | null = null;
-  const saved = await (await aiSettings()).findOne({ _id: "ai" });
+  const saved = await findById(aiSettings(), "ai");
   if (saved) {
     try {
       value = { provider: saved.provider, apiKey: open(saved.key), model: saved.model, learningModel: saved.learningModel || saved.model };

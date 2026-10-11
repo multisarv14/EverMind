@@ -1,5 +1,5 @@
 import type { Session } from "@/lib/auth";
-import { conversations, decisions, projects, tasks, users } from "@/lib/db";
+import { conversations, countOf, decisions, findAll, projects, tasks, users } from "@/lib/db";
 import { spendStatus } from "@/lib/entitlements";
 
 const fmt = (d: Date) => d.toISOString().slice(0, 10);
@@ -10,15 +10,14 @@ export async function buildReport(session: Session, days: number) {
   const since = new Date(Date.now() - days * 86_400_000);
 
   const [projectList, taskList, decisionList, members] = await Promise.all([
-    (await projects()).find({ companyId }).sort({ updatedAt: -1 }).toArray(),
-    (await tasks()).find({ companyId }).toArray(),
-    (await decisions()).find({ companyId }).sort({ updatedAt: -1 }).toArray(),
-    (await users()).find({ companyId }, { projection: { _id: 1 } }).toArray(),
+    findAll(projects().where("companyId", "==", companyId).orderBy("updatedAt", "desc")),
+    findAll(tasks().where("companyId", "==", companyId)),
+    findAll(decisions().where("companyId", "==", companyId).orderBy("updatedAt", "desc")),
+    findAll(users().where("companyId", "==", companyId)),
   ]);
-  const chats = await (await conversations()).countDocuments({
-    userId: { $in: members.map((m) => m._id) },
-    createdAt: { $gte: since },
-  });
+  const chats = await countOf(
+    conversations().where("companyId", "==", companyId).where("createdAt", ">=", since).orderBy("createdAt", "desc")
+  );
 
   const count = (s: string) => taskList.filter((t) => t.status === s).length;
   const doneInPeriod = taskList.filter((t) => t.status === "done" && t.updatedAt >= since).length;
@@ -41,7 +40,7 @@ export async function buildReport(session: Session, days: number) {
   lines.push("## Projects");
   if (projectList.length === 0) lines.push("_No projects yet._");
   for (const p of projectList.slice(0, 15)) {
-    const mine = taskList.filter((t) => t.projectId?.equals(p._id));
+    const mine = taskList.filter((t) => t.projectId === p._id);
     const done = mine.filter((t) => t.status === "done").length;
     lines.push(`- **${p.name}** — ${mine.length === 0 ? "no tasks yet" : `${done}/${mine.length} tasks done`}`);
   }

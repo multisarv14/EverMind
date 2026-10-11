@@ -1,4 +1,4 @@
-import { projects, tasks } from "@/lib/db";
+import { findAll, insert, projects, tasks } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { can } from "@/constants/team";
 import { forbidden, json, readBody, unauthorized } from "@/lib/http";
@@ -7,18 +7,13 @@ export async function GET() {
   const session = await currentSession();
   if (!session) return unauthorized();
 
-  const list = await (await projects())
-    .find({ companyId: session.company._id })
-    .sort({ updatedAt: -1 })
-    .limit(200)
-    .toArray();
+  const list = await findAll(projects().where("companyId", "==", session.company._id).orderBy("updatedAt", "desc").limit(200));
 
-  const taskDocs = await (await tasks())
-    .find({ companyId: session.company._id, projectId: { $exists: true } }, { projection: { projectId: 1, status: 1 } })
-    .toArray();
+  const taskDocs = await findAll(tasks().where("companyId", "==", session.company._id));
   const counts = new Map<string, { open: number; done: number }>();
   for (const t of taskDocs) {
-    const key = t.projectId!.toString();
+    if (!t.projectId) continue;
+    const key = t.projectId;
     const c = counts.get(key) ?? { open: 0, done: 0 };
     if (t.status === "done") c.done++;
     else c.open++;
@@ -27,12 +22,12 @@ export async function GET() {
 
   return json({
     projects: list.map((p) => ({
-      id: p._id.toString(),
+      id: p._id,
       name: p.name,
       description: p.description,
       updatedAt: p.updatedAt,
-      openTasks: counts.get(p._id.toString())?.open ?? 0,
-      doneTasks: counts.get(p._id.toString())?.done ?? 0,
+      openTasks: counts.get(p._id)?.open ?? 0,
+      doneTasks: counts.get(p._id)?.done ?? 0,
     })),
   });
 }
@@ -52,7 +47,7 @@ export async function POST(request: Request) {
   if (instructions.length > 4000) return json({ error: "Instructions are too long." }, 400);
 
   const now = new Date();
-  const created = await (await projects()).insertOne({
+  const id = await insert(projects(), {
     companyId: session.company._id,
     name,
     description,
@@ -62,5 +57,5 @@ export async function POST(request: Request) {
     updatedAt: now,
   });
 
-  return json({ id: created.insertedId.toString() }, 201);
+  return json({ id }, 201);
 }

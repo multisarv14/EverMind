@@ -28,6 +28,6 @@ export async function PATCH(request: Request) {
   if (body.about !== undefined) set.about = clip(body.about, 400).replace(/\s+/g, " ");
   if (Object.keys(set).length === 0) return json({ error: "Nothing to update." }, 400);
 
-  await (await companies()).updateOne({ _id: session.company._id }, { $set: set });
+  await companies().doc(session.company._id).update(set);
   return json({ ok: true });
 }

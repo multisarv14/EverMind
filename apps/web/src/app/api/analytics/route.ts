@@ -1,4 +1,4 @@
-import { conversations, dailyUsage, decisions, tasks, users } from "@/lib/db";
+import { conversations, dailyUsage, decisions, findAll, tasks, users } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { json, unauthorized } from "@/lib/http";
 
@@ -18,16 +18,12 @@ export async function GET() {
   const days = lastDays(DAYS);
   const since = new Date(`${days[0]}T00:00:00.000Z`);
 
-  const members = await (await users()).find({ companyId }, { projection: { name: 1 } }).toArray();
-  const memberIds = members.map((m) => m._id);
-
-  const [usageDocs, chats, taskDocs, decisionDocs] = await Promise.all([
-    (await dailyUsage()).find({ companyId, day: { $gte: days[0] } }).toArray(),
-    (await conversations())
-      .find({ userId: { $in: memberIds }, createdAt: { $gte: since } }, { projection: { userId: 1, createdAt: 1 } })
-      .toArray(),
-    (await tasks()).find({ companyId }, { projection: { status: 1 } }).toArray(),
-    (await decisions()).find({ companyId }, { projection: { status: 1 } }).toArray(),
+  const [members, usageDocs, chats, taskDocs, decisionDocs] = await Promise.all([
+    findAll(users().where("companyId", "==", companyId)),
+    findAll(dailyUsage().where("companyId", "==", companyId).where("day", ">=", days[0]).orderBy("day", "desc")),
+    findAll(conversations().where("companyId", "==", companyId).where("createdAt", ">=", since).orderBy("createdAt", "desc")),
+    findAll(tasks().where("companyId", "==", companyId)),
+    findAll(decisions().where("companyId", "==", companyId)),
   ]);
 
   // Days from before credits existed only have raw tokens.
@@ -38,7 +34,7 @@ export async function GET() {
   for (const c of chats) {
     const d = c.createdAt.toISOString().slice(0, 10);
     chatsByDay.set(d, (chatsByDay.get(d) ?? 0) + 1);
-    chatsByUser.set(c.userId.toString(), (chatsByUser.get(c.userId.toString()) ?? 0) + 1);
+    chatsByUser.set(c.userId, (chatsByUser.get(c.userId) ?? 0) + 1);
   }
 
   const count = <T extends { status: string }>(list: T[], s: string) => list.filter((x) => x.status === s).length;
@@ -56,7 +52,7 @@ export async function GET() {
       rejected: count(decisionDocs, "rejected"),
     },
     members: members
-      .map((m) => ({ name: m.name, conversations: chatsByUser.get(m._id.toString()) ?? 0 }))
+      .map((m) => ({ name: m.name, conversations: chatsByUser.get(m._id) ?? 0 }))
       .sort((a, b) => b.conversations - a.conversations),
   });
 }

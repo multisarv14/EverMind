@@ -1,6 +1,18 @@
-import type { ObjectId } from "mongodb";
 import { askCompany, AiError } from "@/lib/ai";
-import { companies, conversations, feedback, knowledge, learnings, users, type CompanyRecord } from "@/lib/db";
+import {
+  companies,
+  conversations,
+  feedback,
+  findAll,
+  insert,
+  knowledge,
+  learnings,
+  messageId,
+  messagesOf,
+  readMessages,
+  type CompanyRecord,
+  type Id,
+} from "@/lib/db";
 
 const SCHEMA = {
   type: "object",
@@ -34,19 +46,18 @@ const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n)}…` : s
 /** Reads recent activity for one company and stores new suggested facts for the owner to approve. */
 export async function runLearning(company: CompanyRecord): Promise<{ created: number; note?: string }> {
   const since = company.lastLearningAt ?? new Date(Date.now() - 7 * 86_400_000);
-  const members = await (await users()).find({ companyId: company._id }, { projection: { _id: 1 } }).toArray();
-  const memberIds = members.map((m) => m._id);
+  const convos = await findAll(
+    conversations().where("companyId", "==", company._id).where("updatedAt", ">=", since).orderBy("updatedAt", "desc").limit(15)
+  );
 
-  const convos = await (await conversations())
-    .find({ userId: { $in: memberIds }, updatedAt: { $gte: since } })
-    .sort({ updatedAt: -1 })
-    .limit(15)
-    .toArray();
-
-  const downs = await (await feedback())
-    .find({ companyId: company._id, rating: "down", createdAt: { $gte: since } })
-    .limit(5)
-    .toArray();
+  const downs = await findAll(
+    feedback()
+      .where("companyId", "==", company._id)
+      .where("rating", "==", "down")
+      .where("createdAt", ">=", since)
+      .orderBy("createdAt", "desc")
+      .limit(5)
+  );
 
   if (convos.length === 0) {
     await markRun(company._id);
@@ -55,20 +66,19 @@ export async function runLearning(company: CompanyRecord): Promise<{ created: nu
 
   let transcript = "";
   for (const c of convos) {
-    const lines = c.messages.slice(-8).map((m) => `${m.role === "user" ? "Team" : "EverMind"}: ${clip(m.content.replace(/\s+/g, " "), m.role === "user" ? 500 : 250)}`);
+    const lines = (await readMessages(c, 8)).map((m) => `${m.role === "user" ? "Team" : "EverMind"}: ${clip(m.content.replace(/\s+/g, " "), m.role === "user" ? 500 : 250)}`);
     transcript += `\n## ${clip(c.title, 80)}\n${lines.join("\n")}\n`;
     if (transcript.length > 14_000) break;
   }
 
   const poorly: string[] = [];
   for (const f of downs) {
-    const c = convos.find((x) => x._id.equals(f.conversationId)) ?? (await (await conversations()).findOne({ _id: f.conversationId }));
-    const m = c?.messages[f.messageIndex];
+    const m = (await messagesOf(f.conversationId).doc(messageId(f.messageIndex)).get()).data();
     if (m) poorly.push(`- ${clip(m.content.replace(/\s+/g, " "), 200)}`);
   }
 
-  const known = await (await knowledge()).find({ companyId: company._id }).sort({ updatedAt: -1 }).limit(30).toArray();
-  const earlier = await (await learnings()).find({ companyId: company._id }).sort({ createdAt: -1 }).limit(40).toArray();
+  const known = await findAll(knowledge().where("companyId", "==", company._id).orderBy("updatedAt", "desc").limit(30));
+  const earlier = await findAll(learnings().where("companyId", "==", company._id).orderBy("createdAt", "desc").limit(40));
   const existing = [
     ...known.map((k) => `${k.title}: ${clip(k.content.replace(/\s+/g, " "), 160)}`),
     ...earlier.map((l) => clip(l.text, 160)),
@@ -97,13 +107,13 @@ export async function runLearning(company: CompanyRecord): Promise<{ created: nu
   const fresh = facts.filter((f) => !seen.has(f.toLowerCase()));
   if (fresh.length) {
     const now = new Date();
-    await (await learnings()).insertMany(fresh.map((text) => ({ companyId: company._id, text, status: "pending" as const, createdAt: now })));
+    await Promise.all(fresh.map((text) => insert(learnings(), { companyId: company._id, text, status: "pending", createdAt: now })));
   }
 
   await markRun(company._id);
   return { created: fresh.length, note: fresh.length ? undefined : "Nothing new worth saving." };
 }
 
-async function markRun(companyId: ObjectId) {
-  await (await companies()).updateOne({ _id: companyId }, { $set: { lastLearningAt: new Date() } });
+async function markRun(companyId: Id) {
+  await companies().doc(companyId).update({ lastLearningAt: new Date() });
 }

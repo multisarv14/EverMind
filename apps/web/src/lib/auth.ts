@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
-import { ObjectId } from "mongodb";
-import { companies, users, type CompanyRecord, type UserRecord } from "@/lib/db";
+import { companies, findById, insert, users, type CompanyRecord, type Id, type UserRecord } from "@/lib/db";
+import { docId } from "@/lib/http";
 import type { Role } from "@/constants/team";
 
 export const SESSION_COOKIE = "evermind_session";
@@ -37,7 +37,7 @@ export async function endSession() {
 }
 
 export interface Session {
-  user: UserRecord & { companyId: ObjectId; role: Role };
+  user: UserRecord & { companyId: Id; role: Role };
   company: CompanyRecord;
   role: Role;
 }
@@ -49,10 +49,7 @@ export async function currentSession(): Promise<Session | null> {
 
   try {
     const { payload } = await jwtVerify(token, secret());
-    if (!payload.sub || !ObjectId.isValid(payload.sub)) return null;
-
-    const usersCol = await users();
-    let user = await usersCol.findOne({ _id: new ObjectId(payload.sub) });
+    let user = await findById(users(), docId(payload.sub));
     if (!user) return null;
 
     // A password change/reset signs out every session that was issued before it.
@@ -60,17 +57,18 @@ export async function currentSession(): Promise<Session | null> {
 
     // Accounts created before workspaces existed get their own company, as owner.
     if (!user.companyId || !user.role) {
-      const created = await (await companies()).insertOne({
+      const companyId = await insert(companies(), {
         name: user.companyName?.trim() || `${user.name}'s company`,
         teamSize: "Just me",
         plan: "free",
+        lastLearningAt: null,
         createdAt: new Date(),
       });
-      await usersCol.updateOne({ _id: user._id }, { $set: { companyId: created.insertedId, role: "owner" } });
-      user = { ...user, companyId: created.insertedId, role: "owner" };
+      await users().doc(user._id).update({ companyId, role: "owner" });
+      user = { ...user, companyId, role: "owner" };
     }
 
-    const company = await (await companies()).findOne({ _id: user.companyId });
+    const company = await findById(companies(), user.companyId);
     if (!company) return null;
 
     return {

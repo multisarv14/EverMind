@@ -1,4 +1,3 @@
-import { ObjectId } from "mongodb";
 import { can } from "@/constants/team";
 import type { Session } from "@/lib/auth";
 
@@ -22,7 +21,10 @@ export async function readBody(request: Request): Promise<Record<string, unknown
 /** Members and above can create and edit work (projects, tasks, decisions, knowledge). */
 export const canEdit = (session: Session) => can(session.role, "createProject");
 
-export const oid = (value: unknown): ObjectId | null =>
-  typeof value === "string" && ObjectId.isValid(value) ? new ObjectId(value) : null;
+/** A document id from a request, or null when it can't be one (Firestore ids: up to 1500 bytes, no "/", not "." or ".."). */
+export const docId = (value: unknown): string | null =>
+  typeof value === "string" && /^[^/]{1,200}$/.test(value) && value !== "." && value !== ".." && !/^__.*__$/.test(value)
+    ? value
+    : null;
 
 export const clip = (value: unknown, max: number) => String(value ?? "").trim().slice(0, max);

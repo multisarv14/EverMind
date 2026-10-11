@@ -13,6 +13,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // The test suite builds into its own folder, so it can run next to a developer's `next dev`.
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   // Hides the floating Next.js "N" badge shown only in development.
   devIndicators: false,
   // A small self-contained server build for Docker deployments.

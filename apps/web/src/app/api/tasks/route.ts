@@ -1,6 +1,6 @@
-import { tasks, users, projects } from "@/lib/db";
+import { findAll, findById, insert, tasks, users, projects } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
-import { canEdit, clip, forbidden, json, oid, readBody, unauthorized } from "@/lib/http";
+import { canEdit, clip, forbidden, json, docId, readBody, unauthorized } from "@/lib/http";
 
 const DUE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -8,30 +8,30 @@ export async function GET(request: Request) {
   const session = await currentSession();
   if (!session) return unauthorized();
 
-  const filter: Record<string, unknown> = { companyId: session.company._id };
-  const project = oid(new URL(request.url).searchParams.get("project"));
-  if (project) filter.projectId = project;
+  let query = tasks().where("companyId", "==", session.company._id);
+  const project = docId(new URL(request.url).searchParams.get("project"));
+  if (project) query = query.where("projectId", "==", project);
 
-  const list = await (await tasks()).find(filter).sort({ updatedAt: -1 }).limit(500).toArray();
-  const people = await (await users())
-    .find({ companyId: session.company._id }, { projection: { name: 1 } })
-    .toArray();
-  const projectList = await (await projects()).find({ companyId: session.company._id }, { projection: { name: 1 } }).toArray();
-  const names = new Map(people.map((p) => [p._id.toString(), p.name]));
-  const projectNames = new Map(projectList.map((p) => [p._id.toString(), p.name]));
+  const [list, people, projectList] = await Promise.all([
+    findAll(query.orderBy("updatedAt", "desc").limit(500)),
+    findAll(users().where("companyId", "==", session.company._id)),
+    findAll(projects().where("companyId", "==", session.company._id)),
+  ]);
+  const names = new Map(people.map((p) => [p._id, p.name]));
+  const projectNames = new Map(projectList.map((p) => [p._id, p.name]));
 
   return json({
     tasks: list.map((t) => ({
-      id: t._id.toString(),
+      id: t._id,
       title: t.title,
       status: t.status,
       due: t.due ?? null,
-      projectId: t.projectId?.toString() ?? null,
-      projectName: t.projectId ? projectNames.get(t.projectId.toString()) ?? null : null,
-      assigneeId: t.assigneeId?.toString() ?? null,
-      assigneeName: t.assigneeId ? names.get(t.assigneeId.toString()) ?? null : null,
+      projectId: t.projectId ?? null,
+      projectName: t.projectId ? projectNames.get(t.projectId) ?? null : null,
+      assigneeId: t.assigneeId ?? null,
+      assigneeName: t.assigneeId ? names.get(t.assigneeId) ?? null : null,
     })),
-    people: people.map((p) => ({ id: p._id.toString(), name: p.name })),
+    people: people.map((p) => ({ id: p._id, name: p.name })),
   });
 }
 
@@ -45,18 +45,18 @@ export async function POST(request: Request) {
   if (title.length < 2) return json({ error: "Please enter a task title." }, 400);
 
   const due = clip(body.due, 10);
-  const projectId = oid(body.projectId);
-  const assigneeId = oid(body.assigneeId);
+  const projectId = docId(body.projectId);
+  const assigneeId = docId(body.assigneeId);
 
-  if (projectId && !(await (await projects()).findOne({ _id: projectId, companyId: session.company._id }))) {
+  if (projectId && !(await findById(projects(), projectId, { companyId: session.company._id }))) {
     return json({ error: "Project not found." }, 404);
   }
-  if (assigneeId && !(await (await users()).findOne({ _id: assigneeId, companyId: session.company._id }))) {
+  if (assigneeId && !(await findById(users(), assigneeId, { companyId: session.company._id }))) {
     return json({ error: "Teammate not found." }, 404);
   }
 
   const now = new Date();
-  const created = await (await tasks()).insertOne({
+  const id = await insert(tasks(), {
     companyId: session.company._id,
     title,
     status: "todo",
@@ -68,5 +68,5 @@ export async function POST(request: Request) {
     updatedAt: now,
   });
 
-  return json({ id: created.insertedId.toString() }, 201);
+  return json({ id }, 201);
 }

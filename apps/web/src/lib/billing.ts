@@ -1,6 +1,18 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { ObjectId } from "mongodb";
-import { billingEvents, companies, creditGrants, payments, users, type CompanyRecord } from "@/lib/db";
+import {
+  billingEvents,
+  companies,
+  creditGrants,
+  findById,
+  findFirst,
+  insert,
+  isDuplicate,
+  key,
+  payments,
+  users,
+  type CompanyRecord,
+} from "@/lib/db";
+import { docId } from "@/lib/http";
 import { GRACE_DAYS, PACKS, PACK_VALID_DAYS, PLANS, isPaidPlan, type Interval, type PlanId } from "@/lib/plans";
 import { withGst } from "@/lib/pricing";
 import { sendMail } from "@/lib/mail";
@@ -58,7 +70,7 @@ export async function createSubscription(company: CompanyRecord, plan: Exclude<P
     // Razorpay needs an end; this is 10 years either way and is cancelled whenever the owner chooses.
     total_count: interval === "monthly" ? 120 : 10,
     customer_notify: 1,
-    notes: { companyId: company._id.toString(), plan, interval, email },
+    notes: { companyId: company._id, plan, interval, email },
   });
   return { id: sub.id, url: sub.short_url };
 }
@@ -73,7 +85,7 @@ export async function createPackLink(company: CompanyRecord, packId: string, ema
     description: `EverMind: ${pack.credits.toLocaleString("en-IN")} AI credits for ${company.name}`,
     customer: { email },
     notify: { email: true },
-    notes: { companyId: company._id.toString(), packId: pack.id },
+    notes: { companyId: company._id, packId: pack.id },
     callback_url: returnUrl,
     callback_method: "get",
   });
@@ -122,30 +134,32 @@ export interface WebhookEvent {
 const date = (unix?: number | null) => (unix ? new Date(unix * 1000) : undefined);
 
 async function companyFromNotes(notes?: Record<string, string>) {
-  const id = notes?.companyId;
-  if (!id || !ObjectId.isValid(id)) return null;
-  return (await companies()).findOne({ _id: new ObjectId(id) });
+  return findById(companies(), docId(notes?.companyId));
 }
 
 async function ownerOf(company: CompanyRecord) {
-  return (await users()).findOne({ companyId: company._id, role: "owner" });
+  return findFirst(users().where("companyId", "==", company._id).where("role", "==", "owner"));
 }
 
 /** Stores a captured payment once; returns false if it was already recorded. */
 async function recordPayment(company: CompanyRecord, p: PaymentEntity, extra: { kind: "subscription" | "pack"; plan?: string; packId?: string }) {
   try {
-    await (await payments()).insertOne({
-      companyId: company._id,
-      ...extra,
-      amount: p.amount,
-      currency: p.currency,
-      status: p.status === "captured" ? "captured" : "failed",
-      gatewayPaymentId: p.id,
-      createdAt: new Date(),
-    });
+    await insert(
+      payments(),
+      {
+        companyId: company._id,
+        ...extra,
+        amount: p.amount,
+        currency: p.currency,
+        status: p.status === "captured" ? "captured" : "failed",
+        gatewayPaymentId: p.id,
+        createdAt: new Date(),
+      },
+      key(p.id)
+    );
     return true;
   } catch (error) {
-    if ((error as { code?: number }).code === 11000) return false;
+    if (isDuplicate(error)) return false;
     throw error;
   }
 }
@@ -156,9 +170,9 @@ async function recordPayment(company: CompanyRecord, p: PaymentEntity, extra: { 
  */
 export async function handleWebhook(eventId: string, ev: WebhookEvent): Promise<boolean> {
   try {
-    await (await billingEvents()).insertOne({ _id: eventId, type: ev.event, createdAt: new Date() });
+    await insert(billingEvents(), { type: ev.event, createdAt: new Date() }, key(eventId));
   } catch (error) {
-    if ((error as { code?: number }).code === 11000) return false;
+    if (isDuplicate(error)) return false;
     throw error;
   }
 
@@ -166,14 +180,14 @@ export async function handleWebhook(eventId: string, ev: WebhookEvent): Promise<
     await apply(ev);
   } catch (error) {
     // Let Razorpay deliver it again.
-    await (await billingEvents()).deleteOne({ _id: eventId });
+    await billingEvents().doc(key(eventId)).delete();
     throw error;
   }
   return true;
 }
 
 async function apply(ev: WebhookEvent) {
-  const col = await companies();
+  const col = companies();
 
   if (ev.event === "payment_link.paid") {
     const notes = ev.payload.payment_link?.entity.notes;
@@ -183,16 +197,20 @@ async function apply(ev: WebhookEvent) {
     if (!company || !pack || !payment) return;
     if (!(await recordPayment(company, payment, { kind: "pack", packId: pack.id }))) return;
     const now = new Date();
-    await (await creditGrants()).insertOne({
-      companyId: company._id,
-      source: "pack",
-      packId: pack.id,
-      paymentId: payment.id,
-      credits: pack.credits,
-      remaining: pack.credits,
-      createdAt: now,
-      expiresAt: new Date(now.getTime() + PACK_VALID_DAYS * 86_400_000),
-    });
+    await insert(
+      creditGrants(),
+      {
+        companyId: company._id,
+        source: "pack",
+        packId: pack.id,
+        paymentId: payment.id,
+        credits: pack.credits,
+        remaining: pack.credits,
+        createdAt: now,
+        expiresAt: new Date(now.getTime() + PACK_VALID_DAYS * 86_400_000),
+      },
+      key("pack", payment.id)
+    );
     const owner = await ownerOf(company);
     if (owner) await sendMail(receiptEmail(owner.email, owner.name, company.name, `${pack.credits.toLocaleString("en-IN")} AI credits`, payment.amount, payment.currency));
     return;
@@ -216,22 +234,17 @@ async function apply(ev: WebhookEvent) {
       if (previous && previous !== sub.id && company.billing?.status !== "cancelled") {
         await cancelSubscription(previous, true).catch((e) => console.error("could not cancel replaced subscription:", e));
       }
-      await col.updateOne(
-        { _id: company._id },
-        {
-          $set: {
-            plan,
-            billing: {
-              status: "active",
-              interval,
-              subscriptionId: sub.id,
-              periodStart: date(sub.current_start) ?? new Date(),
-              ...(sub.current_end ? { periodEnd: date(sub.current_end) } : {}),
-              cancelAtPeriodEnd: current ? Boolean(company.billing?.cancelAtPeriodEnd) : false,
-            },
-          },
-        }
-      );
+      await col.doc(company._id).update({
+        plan,
+        billing: {
+          status: "active",
+          interval,
+          subscriptionId: sub.id,
+          periodStart: date(sub.current_start) ?? new Date(),
+          ...(sub.current_end ? { periodEnd: date(sub.current_end) } : {}),
+          cancelAtPeriodEnd: current ? Boolean(company.billing?.cancelAtPeriodEnd) : false,
+        },
+      });
       const payment = ev.payload.payment?.entity;
       if (payment && (await recordPayment(company, payment, { kind: "subscription", plan }))) {
         const owner = await ownerOf(company);
@@ -244,7 +257,7 @@ async function apply(ev: WebhookEvent) {
     case "subscription.halted": {
       if (!current || company.billing?.status === "past_due") return;
       const graceUntil = new Date(Date.now() + GRACE_DAYS * 86_400_000);
-      await col.updateOne({ _id: company._id }, { $set: { "billing.status": "past_due", "billing.graceUntil": graceUntil } });
+      await col.doc(company._id).update({ "billing.status": "past_due", "billing.graceUntil": graceUntil });
       const owner = await ownerOf(company);
       if (owner) await sendMail(paymentFailedEmail(owner.email, owner.name, company.name, PLANS[isPaidPlan(plan) ? plan : "pro"], graceUntil));
       return;
@@ -254,7 +267,7 @@ async function apply(ev: WebhookEvent) {
     case "subscription.completed": {
       // Ignore the end of a subscription that was already replaced by a newer one.
       if (!current) return;
-      await col.updateOne({ _id: company._id }, { $set: { plan: "free", "billing.status": "cancelled" } });
+      await col.doc(company._id).update({ plan: "free", "billing.status": "cancelled" });
       return;
     }
   }

@@ -1,15 +1,15 @@
-import { conversations, feedback } from "@/lib/db";
+import { conversations, feedback, findAll, findById, key, messageId, messagesOf } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
-import { json, oid, readBody, unauthorized } from "@/lib/http";
+import { json, docId, readBody, unauthorized } from "@/lib/http";
 
 export async function GET(request: Request) {
   const session = await currentSession();
   if (!session) return unauthorized();
 
-  const conversationId = oid(new URL(request.url).searchParams.get("conversation"));
+  const conversationId = docId(new URL(request.url).searchParams.get("conversation"));
   if (!conversationId) return json({ ratings: {} });
 
-  const list = await (await feedback()).find({ userId: session.user._id, conversationId }).toArray();
+  const list = await findAll(feedback().where("userId", "==", session.user._id).where("conversationId", "==", conversationId));
   return json({ ratings: Object.fromEntries(list.map((f) => [f.messageIndex, f.rating])) });
 }
 
@@ -19,27 +19,32 @@ export async function POST(request: Request) {
   if (!session) return unauthorized();
 
   const body = await readBody(request);
-  const conversationId = oid(body.conversationId);
+  const conversationId = docId(body.conversationId);
   const index = Number(body.messageIndex);
   const rating = body.rating;
 
   if (!conversationId || !Number.isInteger(index) || index < 0) return json({ error: "Invalid request." }, 400);
   if (rating !== "up" && rating !== "down" && rating !== null) return json({ error: "Invalid rating." }, 400);
 
-  const convo = await (await conversations()).findOne({ _id: conversationId, userId: session.user._id });
-  if (!convo || convo.messages[index]?.role !== "assistant") return json({ error: "Not found." }, 404);
+  const convo = await findById(conversations(), conversationId, { userId: session.user._id });
+  const message = convo && (await messagesOf(convo._id).doc(messageId(index)).get()).data();
+  if (!convo || message?.role !== "assistant") return json({ error: "Not found." }, 404);
 
-  const col = await feedback();
-  const key = { userId: session.user._id, conversationId, messageIndex: index };
+  const ref = feedback().doc(key(session.user._id, conversationId, index));
 
   if (rating === null) {
-    await col.deleteOne(key);
+    await ref.delete();
   } else {
-    await col.updateOne(
-      key,
-      { $set: { rating, companyId: session.company._id, ...(convo.agent ? { agent: convo.agent } : {}), createdAt: new Date() } },
-      { upsert: true }
-    );
+    await ref.set({
+      _id: ref.id,
+      userId: session.user._id,
+      conversationId,
+      messageIndex: index,
+      rating,
+      companyId: session.company._id,
+      ...(convo.agent ? { agent: convo.agent } : {}),
+      createdAt: new Date(),
+    });
   }
   return json({ ok: true });
 }

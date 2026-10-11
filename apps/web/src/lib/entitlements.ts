@@ -1,5 +1,5 @@
-import type { ObjectId } from "mongodb";
-import { dailyUsage, usage, usageEvents, users, type CompanyRecord } from "@/lib/db";
+import { FieldValue } from "firebase-admin/firestore";
+import { dailyUsage, findFirst, firestore, insert, key, usage, usageEvents, users, type CompanyRecord, type Id } from "@/lib/db";
 import { PLANS, planOf, type Plan } from "@/lib/plans";
 import { costMicros, creditsFor, type TokenUsage } from "@/lib/pricing";
 import { creditsUsed, drawFromPacks, packBalance, usageKey, usageWindow, type UsageWindow } from "@/lib/usage";
@@ -55,7 +55,7 @@ export interface SpendInput {
   model: string;
   usage: TokenUsage;
   feature: string;
-  userId?: ObjectId;
+  userId?: Id;
   estimated?: boolean;
 }
 
@@ -72,13 +72,24 @@ export async function recordSpend(company: CompanyRecord, input: SpendInput) {
   const w = usageWindow(company);
   const tokens = input.usage.input_tokens + input.usage.output_tokens;
 
-  const doc = await (await usage()).findOneAndUpdate(
-    { _id: usageKey(company._id, w) },
-    { $inc: { credits, costMicros: micros, tokens }, $setOnInsert: { companyId: company._id, month: w.key } },
-    { upsert: true, returnDocument: "after" }
-  );
-  const after = doc?.credits ?? credits;
-  const before = after - credits;
+  // A transaction, so `before` is exact even when several calls finish at the same moment.
+  const ref = usage().doc(usageKey(company._id, w));
+  const before = await firestore().runTransaction(async (tx) => {
+    const doc = (await tx.get(ref)).data();
+    tx.set(
+      ref,
+      {
+        companyId: company._id,
+        month: w.key,
+        credits: (doc?.credits ?? 0) + credits,
+        costMicros: (doc?.costMicros ?? 0) + micros,
+        tokens: (doc?.tokens ?? 0) + tokens,
+      },
+      { merge: true }
+    );
+    return doc?.credits ?? 0;
+  });
+  const after = before + credits;
 
   // Only the part above the allowance comes out of packs.
   const overflow = Math.max(0, after - Math.max(before, plan.monthlyCredits));
@@ -86,12 +97,19 @@ export async function recordSpend(company: CompanyRecord, input: SpendInput) {
 
   const day = new Date().toISOString().slice(0, 10);
   await Promise.all([
-    (await dailyUsage()).updateOne(
-      { _id: `${company._id.toString()}:${day}` },
-      { $inc: { tokens, credits, costMicros: micros }, $setOnInsert: { companyId: company._id, day } },
-      { upsert: true }
-    ),
-    (await usageEvents()).insertOne({
+    dailyUsage()
+      .doc(key(company._id, day))
+      .set(
+        {
+          companyId: company._id,
+          day,
+          tokens: FieldValue.increment(tokens),
+          credits: FieldValue.increment(credits),
+          costMicros: FieldValue.increment(micros),
+        },
+        { merge: true }
+      ),
+    insert(usageEvents(), {
       companyId: company._id,
       ...(input.userId ? { userId: input.userId } : {}),
       feature: input.feature,
@@ -116,13 +134,17 @@ async function notifyThresholds(company: CompanyRecord, plan: Plan, w: UsageWind
   const level = used >= plan.monthlyCredits ? "warned100" : used >= plan.monthlyCredits * 0.8 ? "warned80" : null;
   if (!level) return;
 
-  const marked = await (await usage()).updateOne(
-    { _id: usageKey(company._id, w), [level]: { $ne: true } },
-    { $set: level === "warned100" ? { warned100: true, warned80: true } : { warned80: true } }
-  );
-  if (!marked.modifiedCount) return;
+  // Mark first, in a transaction, so the email goes out once even if several calls cross the line together.
+  const ref = usage().doc(usageKey(company._id, w));
+  const marked = await firestore().runTransaction(async (tx) => {
+    const doc = (await tx.get(ref)).data();
+    if (!doc || doc[level]) return false;
+    tx.update(ref, level === "warned100" ? { warned100: true, warned80: true } : { warned80: true });
+    return true;
+  });
+  if (!marked) return;
 
-  const owner = await (await users()).findOne({ companyId: company._id, role: "owner" });
+  const owner = await findFirst(users().where("companyId", "==", company._id).where("role", "==", "owner"));
   if (!owner) return;
   const packs = level === "warned100" ? await packBalance(company._id) : 0;
   await sendMail(usageEmail(owner.email, owner.name, company.name, plan, level === "warned100" ? "full" : "high", packs, w.end));

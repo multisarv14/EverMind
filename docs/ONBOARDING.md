@@ -16,7 +16,7 @@ which technologies it uses, and the rules for changing it** without breaking any
 4. [Repository layout](#4-repository-layout)
 5. [Architecture](#5-architecture)
 6. [Main flows, step by step](#6-main-flows-step-by-step)
-7. [Data model (MongoDB collections)](#7-data-model-mongodb-collections)
+7. [Data model (Firestore collections)](#7-data-model-firestore-collections)
 8. [API reference](#8-api-reference)
 9. [Screens (pages)](#9-screens-pages)
 10. [Local setup](#10-local-setup)
@@ -111,7 +111,7 @@ Extra rule: only the **owner** can invite admins. Viewers can read everything in
 | Animation | **framer-motion** | 12 | Marketing page and reveals. |
 | Icons | **lucide-react** | | All icons. |
 | Markdown | **react-markdown** + **remark-gfm** | | Renders AI answers and reports (tables, lists). |
-| Database | **MongoDB** (official `mongodb` driver, no ORM) | Server 7, driver 7 | One shared client; indexes created on first connect; TTL indexes clean up rate limits and reset tokens automatically. |
+| Database | **Cloud Firestore** (Native mode) via **`firebase-admin`** | SDK 13 | Server-only access with a service account (security rules deny all client access). Composite indexes and TTL policies in `firestore.indexes.json`, deployed with `npm run db:indexes`. |
 | AI | **Anthropic Claude** via **`@anthropic-ai/sdk`** | | Default model `claude-opus-5-5` (`ANTHROPIC_MODEL`). Streaming for chat; JSON-schema structured output for tasks, agent recommendations and learning. |
 | Auth | **jose** (JWT HS256) + **bcryptjs** (cost 12) | | Stateless signed cookie; passwords hashed; a password change invalidates older sessions. |
 | Email | **nodemailer** (SMTP) | | Invites and password reset. Without `SMTP_URL` the email is printed to the server console. |
@@ -139,7 +139,7 @@ EverMind/
 │   ├── ONBOARDING.md           ← this file
 │   └── DEPLOY_TICKET.md        ← production deployment checklist
 ├── scripts/                    ← legacy C# build scripts
-└── docker-compose.yml          ← app + MongoDB for deployment
+└── docker-compose.yml          ← the app for deployment (the database is Firestore)
 ```
 
 Inside **`apps/web`**:
@@ -172,8 +172,9 @@ apps/web/
 │   ├── proxy.ts                request gate (Next 16 "proxy", formerly middleware)
 │   └── instrumentation.ts      runs at server start → starts the nightly learning scheduler
 ├── scripts/
-│   ├── ensure-db.sh            starts/creates the local "evermind-mongo" Docker container
-│   ├── test-api.sh             runs the test suite (throw-away DB + mock Claude)
+│   ├── firestore.mjs           the Firestore connection for the scripts
+│   ├── migrate-mongo-to-firestore.mjs   one-time copy of the old MongoDB data
+│   ├── test-api.sh             runs the test suite (Firestore emulator + mock Claude)
 │   └── eval-agents.mjs         checks agent answer quality with the REAL API (costs tokens)
 ├── tests/                      api.test.mjs, helpers.mjs, mock-claude.mjs
 ├── Dockerfile, docker.env.example, next.config.ts
@@ -183,7 +184,7 @@ apps/web/
 
 | File | Responsibility |
 |---|---|
-| `db.ts` | Mongo client (single, reused across hot reloads), all document types, collection getters, index creation |
+| `db.ts` | Firestore client (single, reused across hot reloads), all document types, collection getters, helpers (`findById`, `findAll`, `insert`, `key`, messages) |
 | `auth.ts` | `startSession`, `endSession`, `currentSession()` (verifies JWT, loads user + company + role) |
 | `me.ts` | `buildMe()`: everything the UI needs about the current user (role, permissions, plan, usage, agents) |
 | `http.ts` | API helpers: `json`, `unauthorized`, `forbidden`, `readBody`, `canEdit`, `oid`, `clip` |
@@ -196,7 +197,7 @@ apps/web/
 | `usage.ts` | Usage window, `creditsUsed`, pack balance, `drawFromPacks` |
 | `entitlements.ts` | `effectivePlan`, `spendStatus` / `spendBlock` (may the company use AI?), `recordSpend` (charge a call, then 80%/100% emails) |
 | `billing.ts` | Razorpay client (subscriptions, payment links, cancel), webhook signature check and event handling |
-| `ratelimit.ts` | Mongo-backed fixed-window rate limiter, `clientIp`, `tooManyRequests` |
+| `ratelimit.ts` | Firestore-backed fixed-window rate limiter, `clientIp`, `tooManyRequests` |
 | `mail.ts` / `emails.ts` | Sending (SMTP / console / test outbox) and email templates |
 | `report.ts` | Builds the Markdown status report from company data |
 | `client.ts` / `useApi.ts` | Browser-side: `api()` fetch wrapper with `ApiError`, `useApi()` hook, shared client types (`Me`) |
@@ -217,7 +218,7 @@ apps/web/
    │      │                         │
    │      │                         └─ lib/ai.ts / chat route ──► Anthropic Claude API
    │      │                                (rate limit → plan limit → call → addTokens)
-   │      └─ lib/db.ts ─────────────────► MongoDB  (database "evermind")
+   │      └─ lib/db.ts ─────────────────► Cloud Firestore  (FIREBASE_PROJECT_ID)
    ├─ lib/mail.ts ──────────────────────► SMTP server (optional)
    └─ instrumentation.ts → learningScheduler (hourly timer, inside the same process)
 ```
@@ -236,7 +237,9 @@ Key design decisions (keep them unless the team agrees to change them):
 6. **Humans approve what the AI learns.** Learning only creates `pending` suggestions.
 7. **The app works without AI.** If `ANTHROPIC_API_KEY` is missing, AI endpoints return `503` with a clear message;
    everything else works.
-8. **Rate limits and TTL in MongoDB**, so it works across multiple server instances without Redis.
+8. **Rate limits and TTL in Firestore**, so it works across multiple server instances without Redis.
+9. **Uniqueness comes from document ids.** Firestore has no unique indexes, so a unique value is the id (or a
+   reservation document, like `emails/{email}`) and is written with `create()`, which fails when the id is taken.
 
 ---
 
@@ -363,7 +366,7 @@ otherwise Settings shows the old "request an upgrade" form (`POST /api/plan/upgr
 if needed); GST invoices with a GSTIN are not generated yet (Razorpay sends payment receipts); there is no automatic
 top-up.
 
-**Admin chores** (`apps/web/scripts/billing-admin.mjs`, uses `MONGODB_URI`):
+**Admin chores** (`node --env-file=.env.local scripts/billing-admin.mjs`, uses the `FIREBASE_*` settings):
 `report [YYYY-MM]` (revenue vs AI cost per company; compare with the Anthropic Console bill) ·
 `grant <owner-email> <credits> [note]` · `set-plan <owner-email> <plan>` (no payment).
 
@@ -374,41 +377,43 @@ top-up.
 
 ---
 
-## 7. Data model (MongoDB collections)
+## 7. Data model (Firestore collections)
 
-Database: **`evermind`** (from `MONGODB_URI`). Tests use `evermind_test`. Types live in [`lib/db.ts`](../apps/web/src/lib/db.ts).
+Firestore project: **`FIREBASE_PROJECT_ID`**. Tests use the emulator (`demo-evermind-test`). Types and helpers live in
+[`lib/db.ts`](../apps/web/src/lib/db.ts); every record read through it has its document id as `_id` and Dates (not Timestamps).
+Ids are strings. Records copied from MongoDB keep their old ObjectId as a 24-character hex id.
 
-| Collection | Key fields | Scope | Indexes / notes |
-|---|---|---|---|
-| `users` | name, **email** (lowercase, unique), passwordHash, companyId, role, passwordChangedAt | company | unique `email`; `companyId` |
-| `companies` | name, teamSize, industry, about, plan, agents[], lastLearningAt, billing {status, interval, subscriptionId, periodStart/End, cancelAtPeriodEnd, graceUntil} | tenant root | `billing.subscriptionId` |
-| `invites` | companyId, email, role, invitedBy | company | `email`; unique `{companyId, email}` |
-| `conversations` | **userId**, title, messages[{role, content, createdAt}], agent, depth, projectId | **user** (private) | `{userId, updatedAt}` |
-| `projects` | companyId, name, description, instructions, createdBy | company | `{companyId, updatedAt}` |
-| `tasks` | companyId, projectId?, title, status, assigneeId?, due (YYYY-MM-DD) | company | `{companyId, updatedAt}` |
-| `decisions` | companyId, title, context, options, decision, status, aiRecommendation? | company | `{companyId, updatedAt}` |
-| `knowledge` | companyId, title, content | company | `{companyId, updatedAt}` |
-| `reports` | companyId, title, body (Markdown) | company | `{companyId, createdAt}` |
-| `feedback` | companyId, userId, conversationId, messageIndex, agent, rating | company | unique `{userId, conversationId, messageIndex}` |
-| `learnings` | companyId, text, status (pending/approved/dismissed) | company | `{companyId, status, createdAt}` |
-| `usage` | `_id = companyId:window`, credits, costMicros, tokens, warned80/100 | company | window = `YYYY-MM` or the billing-month start date |
-| `dailyUsage` | `_id = companyId:YYYY-MM-DD`, credits, costMicros, tokens | company | |
-| `usageEvents` | companyId, userId, feature, model, input/output/cache tokens, costMicros, credits | company | `{companyId, createdAt}` |
-| `creditGrants` | companyId, source (pack/admin), credits, remaining, paymentId, expiresAt | company | unique `paymentId` |
-| `payments` | companyId, kind, plan/packId, amount (paise, incl. GST), status, gatewayPaymentId | company | unique `gatewayPaymentId` |
-| `billingEvents` | `_id = Razorpay event id`, type | global | makes webhooks idempotent |
-| `upgradeRequests` | companyId, userId, plan, note | company | used only when online payment is off |
-| `passwordResets` | `_id = sha256(token)`, userId, expiresAt | user | **TTL** on `expiresAt` |
-| `rateLimits` | `_id = key:bucket`, count, expireAt | global | **TTL** on `expireAt` |
+| Collection | Document id | Key fields | Scope | Notes |
+|---|---|---|---|---|
+| `users` | auto | name, email (lowercase), passwordHash, companyId, role, passwordChangedAt | company | |
+| `emails` | `key(email)` | userId | global | reserves an email; created in the same batch as the user, so emails are unique |
+| `companies` | auto | name, teamSize, industry, about, plan, agents[], lastLearningAt (null = never), billing {…} | tenant root | |
+| `invites` | `key(companyId, email)` | companyId, email, role, invitedBy | company | one invite per email per company |
+| `conversations` | auto | **userId**, companyId, title, agent, depth, projectId, messageCount, lastMessage | **user** (private) | messages in the subcollection below |
+| `conversations/{id}/messages` | `000000`, `000001`, … | role, content, createdAt | user | the id is the message number (a document is limited to 1 MiB, so messages are not an array) |
+| `projects` | auto | companyId, name, description, instructions, createdBy | company | |
+| `tasks` | auto | companyId, projectId?, title, status, assigneeId?, due (YYYY-MM-DD) | company | |
+| `decisions` | auto | companyId, title, context, options, decision, status, aiRecommendation? | company | |
+| `knowledge` | auto | companyId, title, content | company | |
+| `reports` | auto | companyId, title, body (Markdown) | company | |
+| `feedback` | `key(userId, conversationId, messageIndex)` | companyId, rating, agent | company | one rating per person per message |
+| `learnings` | auto | companyId, text, status (pending/approved/dismissed) | company | |
+| `usage` | `companyId:window` | credits, costMicros, tokens, warned80/100 | company | window = `YYYY-MM` or the billing-month start date; updated in a transaction |
+| `dailyUsage` | `companyId:YYYY-MM-DD` | credits, costMicros, tokens | company | |
+| `usageEvents` | auto | companyId, userId, feature, model, input/output/cache tokens, costMicros, credits | company | |
+| `creditGrants` | `key("pack", paymentId)` for packs, auto for admin grants | companyId, source, credits, remaining, expiresAt | company | drawn down in a transaction |
+| `payments` | `key(gatewayPaymentId)` | companyId, kind, plan/packId, amount (paise, incl. GST), status | company | stored once per payment |
+| `billingEvents` | `key(Razorpay event id)` | type | global | makes webhooks idempotent |
+| `upgradeRequests` | companyId | userId, plan, note | company | used only when online payment is off |
+| `passwordResets` | sha256(token) | userId, expiresAt | user | **TTL** policy on `expiresAt` |
+| `rateLimits` | `key(name, bucket)` | count, expireAt | global | **TTL** policy on `expireAt` |
+| `settings` | `ai` | provider, model, key (encrypted) | global | written by `scripts/set-ai-key.mjs` |
 
-Useful mongosh commands:
+`key(...)` URL-encodes each part and joins them with `:`. Composite indexes for every query the app makes are in
+`apps/web/firestore.indexes.json`; a new query that filters on one field and sorts or ranges on another needs a new entry
+there (the emulator doesn't check indexes, production does: the error message links to the index to add).
 
-```js
-use evermind
-db.users.find({}, { email: 1, role: 1, companyId: 1 })
-db.companies.updateOne({ name: "Acme" }, { $set: { plan: "pro" } })   // manual upgrade
-db.rateLimits.deleteMany({})                                         // clear all rate limits (dev only!)
-```
+Look at or change data in the Firebase console (Firestore → Data), e.g. set `companies/{id}.plan` to `pro` for a manual upgrade.
 
 ---
 
@@ -470,19 +475,20 @@ Public: `/` (landing), `/login`, `/signup`, `/forgot`, `/reset`, `/terms`, `/pri
 
 ## 10. Local setup
 
-Requirements: **Node 20+**, **Docker**, an Anthropic API key (optional; the app works without AI).
+Requirements: **Node 20+**, a **Firebase project** with Cloud Firestore (Native mode), **Java 17+** (for the emulator
+and tests), an Anthropic API key (optional; the app works without AI).
 
 ```bash
-# 1. MongoDB in Docker (or: cd apps/web && npm run db)
-docker run -d --name evermind-mongo --restart unless-stopped -p 27017:27017 -v evermind-mongo:/data/db mongo:7
-
-# 2. Install
+# 1. Install
 cd apps/web
 npm ci
 
-# 3. Configure: create apps/web/.env.local (git-ignored)
+# 2. Configure: create apps/web/.env.local (git-ignored). The FIREBASE_* values come from a service account key
+#    (Firebase console → Project settings → Service accounts → Generate new private key); delete the JSON file after.
 cat > .env.local <<'ENV'
-MONGODB_URI=mongodb://localhost:27017/evermind
+FIREBASE_PROJECT_ID=<project id>
+FIREBASE_CLIENT_EMAIL=<client_email>
+FIREBASE_PRIVATE_KEY="<private_key, with its \n escapes>"
 AUTH_SECRET=<run: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">
 ANTHROPIC_API_KEY=<your key, optional>
 ANTHROPIC_MODEL=claude-opus-5-5
@@ -492,8 +498,13 @@ ANTHROPIC_MODEL=claude-opus-5-5
 # APP_URL=http://localhost:3000
 ENV
 
+# 3. Once per Firebase project: indexes, TTL policies and the deny-all security rules
+npx firebase login
+npm run db:indexes
+
 # 4. Run
-npm run dev:all        # ensures Mongo is up, then http://localhost:3000
+npm run dev            # http://localhost:3000 on the Firestore project above
+npm run dev:emulator   # or: on a throw-away local emulator (data is gone when it stops)
 ```
 
 First steps after it starts: open `/signup`, create a company, pick agents, and try a chat.
@@ -503,8 +514,9 @@ Commands:
 | Command | What it does |
 |---|---|
 | `npm run dev` | Dev server (hot reload) |
-| `npm run dev:all` | Start Mongo container if needed, then dev server |
-| `npm run db` | Only (re)start the Mongo container |
+| `npm run dev:emulator` | Dev server on a throw-away Firestore emulator |
+| `npm run db:indexes` | Deploy `firestore.indexes.json` (indexes + TTL) and `firestore.rules` to the Firebase project |
+| `npm run migrate:mongo` | One-time copy of the old MongoDB data into Firestore (`-- --dry-run` first) |
 | `npm run build` / `npm start` | Production build / run |
 | `npm run lint` | ESLint |
 | `npm test` | API test suite (section 12) |
@@ -516,7 +528,11 @@ Commands:
 
 | Variable | Default | Required | Purpose |
 |---|---|:-:|---|
-| `MONGODB_URI` | `mongodb://localhost:27017/evermind` | ✅ (prod) | Database |
+| `FIREBASE_PROJECT_ID` | none | ✅ | Firestore project |
+| `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY` | none | ✅ (unless on Google Cloud) | Service account; without them Google's default credentials are used |
+| `FIRESTORE_DATABASE_ID` | `(default)` | | A named Firestore database |
+| `FIRESTORE_EMULATOR_HOST` | none | | Use the emulator (set by `npm test` and `npm run dev:emulator`) |
+| `MONGODB_URI` | `mongodb://localhost:27017/evermind` | | Only for `npm run migrate:mongo` (the source) |
 | `AUTH_SECRET` | none | ✅ | JWT signing key, **≥ 32 chars**. Changing it logs everyone out. |
 | `ANTHROPIC_API_KEY` | none | | Enables AI |
 | `ANTHROPIC_MODEL` | `claude-opus-5-5` | | Model for chat and AI actions (`claude-sonnet-5-5` is about half the cost) |
@@ -548,9 +564,10 @@ cd apps/web
 npm test
 ```
 
-What happens ([`scripts/test-api.sh`](../apps/web/scripts/test-api.sh)): it ensures Mongo is running, drops the
-`evermind_test` database, starts a **mock Claude and Razorpay** on port 9999 and the app on port 3200 with test env vars, runs
-`tests/*.test.mjs` with `node --test`, then cleans up. **No real API key and no cost.**
+What happens ([`scripts/test-api.sh`](../apps/web/scripts/test-api.sh)): it starts the **Firestore emulator** on port 8085
+(a fresh, empty database; the real project is never used), a **mock Claude and Razorpay** on port 9999 and the app on
+port 3200 with test env vars (built in `.next-test`, so it can run next to your own `npm run dev`), runs
+`tests/*.test.mjs` with `node --test`, then cleans up. **No real API key and no cost.** Works on macOS and Linux.
 
 Covered (20 tests): security headers, health, anonymous access refused, sign-up validation, login/logout,
 login rate limit, password reset (single use, revokes sessions, no enumeration), agent selection enforced in chat,
@@ -559,9 +576,8 @@ generation and agent recommendations, chat streaming + tokens + feedback, learni
 upgrade requests, and in `tests/billing.test.mjs`: subscribe → renew → pack → failed payment → grace → cancel,
 plan switching, signed and repeated webhooks, and the allowance → packs → blocked order.
 
-⚠️ **macOS note:** the script uses `setsid` and `docker exec evermind-mongo`, which are standard on Linux.
-macOS has no `setsid` by default (`brew install util-linux` provides it), and your Mongo must be the
-`evermind-mongo` container. Linux or CI is the reliable place to run the suite.
+Note: the emulator doesn't check composite indexes; production does. A new query needs its index in
+`firestore.indexes.json` (see section 7).
 
 **Rule:** every new API behavior, especially permissions and company isolation, gets a test in `tests/api.test.mjs`.
 If you add an AI feature, teach `tests/mock-claude.mjs` to answer it.
@@ -573,14 +589,15 @@ If you add an AI feature, teach `tests/mock-claude.mjs` to answer it.
 Full checklist: [`docs/DEPLOY_TICKET.md`](DEPLOY_TICKET.md). Summary:
 
 ```bash
-cp apps/web/docker.env.example apps/web/docker.env   # fill AUTH_SECRET, APP_URL, SMTP_URL, MAIL_FROM, ANTHROPIC_API_KEY
-docker compose up -d --build                         # app on :3000 + MongoDB 7 with "mongo-data" volume
+cp apps/web/docker.env.example apps/web/docker.env   # fill FIREBASE_*, AUTH_SECRET, APP_URL, SMTP_URL, MAIL_FROM, ANTHROPIC_API_KEY
+docker compose up -d --build                         # app on :3000 (the database is Firestore)
 curl localhost:3000/api/health                       # {"ok":true}
 ```
 
 - Put **HTTPS** in front (Caddy/Nginx). Production sends HSTS and secure cookies.
-- Never expose MongoDB port 27017 publicly. Or use MongoDB Atlas (`mongodb+srv://.../evermind`) and remove the `mongo` service.
-- Daily `mongodump` backups kept off the server; test a restore.
+- Run `npm run db:indexes` once per Firebase project (and again whenever `firestore.indexes.json` changes).
+- Turn on Firestore backups (scheduled backups or point-in-time recovery) in the Firebase / Google Cloud console; test a restore.
+- Pick the Firestore location near the server (Render's `singapore` region → `asia-southeast1`). It can't be changed later.
 - Keep the server **always on** (the nightly learning job lives in the process).
 - Monitor `/api/health`; read logs with `docker compose logs -f web`.
 - Terms and Privacy pages still contain placeholders (`[company name]`, `[support email]`...). They must be filled before launch.
@@ -683,9 +700,9 @@ playbooks, outputs, guardrails, india), add its icon/label in `constants/agents.
 | `402 limit_reached` in chat | Allowance used and no pack credits. In dev: raise `FREE_MONTHLY_CREDITS`, `node scripts/billing-admin.mjs grant <owner-email> 100000`, or delete the `usage` doc for that window. |
 | Paid on Razorpay but the plan/credits didn't change | The webhook didn't arrive or failed: check the Razorpay dashboard's webhook log, the URL (must be public https), `RAZORPAY_WEBHOOK_SECRET`, and `docker compose logs web`. Razorpay retries failed deliveries. |
 | "Online payment isn't set up yet" | One of the three `RAZORPAY_*` keys is missing; for a plan button, its `RAZORPAY_PLAN_*` id is missing. |
-| `429` errors | Rate limits. In dev: `db.rateLimits.deleteMany({})`. |
-| `/api/health` not ok, or the app hangs on start | MongoDB not running. Run `npm run db`. Check `MONGODB_URI`. |
-| User exists in Docker but not locally (or the reverse) | Two different MongoDBs (compose `mongo-data` volume vs local `evermind-mongo`). Check which `MONGODB_URI` the running server uses. |
+| `429` errors | Rate limits. In dev: delete the `rateLimits` collection in the Firebase console (they also expire by themselves). |
+| `/api/health` not ok | Firestore can't be reached: check `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` (with its `\n`s) and that the Firestore database exists. |
+| `FAILED_PRECONDITION: The query requires an index` | A composite index is missing: add it to `firestore.indexes.json` (the error links to it) and run `npm run db:indexes`. New indexes take a few minutes to build. |
 | Redirect loop to `/onboarding` | Owner of a company with `industry` but no `agents`: finish onboarding or set `companies.agents`. |
 | Learning never runs | Needs an API key, `LEARNING_SCHEDULER` not `off`, and the server running during `LEARNING_HOUR_UTC`. Trigger it manually from Knowledge/Intelligence (`POST /api/learning/run`). |
 | `npm test` fails at once on macOS | `setsid` is missing, or a port (3200/9999) is busy. See section 12. |
@@ -715,7 +732,7 @@ playbooks, outputs, guardrails, india), add its icon/label in `constants/agents.
 | Seat | One member or pending invite counted against the plan |
 | Token | Unit of AI usage (input + output) that Claude bills |
 | SSE | Server-Sent Events: how chat streams text to the browser |
-| TTL index | MongoDB index that deletes documents automatically after a date |
+| TTL policy | Firestore setting that deletes documents automatically after the date in a field |
 | Tenant | A company workspace; data never crosses tenants |
 | Proxy | Next.js 16 request gate (`src/proxy.ts`), formerly called middleware |
 

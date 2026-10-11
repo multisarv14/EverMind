@@ -3,40 +3,43 @@
 EverMind is an AI Executive for companies: a chat with 12 specialist agents, projects, tasks, decisions,
 company knowledge, reports and analytics, with team roles and a free plan.
 
-Stack: Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · MongoDB · Claude (Anthropic API).
+Stack: Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Cloud Firestore (Firebase) · Claude (Anthropic API).
 
 ## Run it locally
 
-You need Node 20+ and Docker.
+You need Node 20+, a Firebase project with Cloud Firestore (Native mode), and Java 17+ (21+ recommended) for the local emulator and tests.
 
 ```bash
-# 1. MongoDB
-docker run -d --name evermind-mongo --restart unless-stopped -p 27017:27017 -v evermind-mongo:/data/db mongo:7
-
-# 2. Install
+# 1. Install
 cd apps/web
 npm ci
 
-# 3. Configure (create apps/web/.env.local — it is git-ignored)
+# 2. Configure (create apps/web/.env.local — it is git-ignored).
+#    The FIREBASE_* values come from a service account key: Firebase console → Project settings →
+#    Service accounts → Generate new private key. Copy the three fields from that JSON file, then delete the file.
 cat > .env.local <<'ENV'
-MONGODB_URI=mongodb://localhost:27017/evermind
+FIREBASE_PROJECT_ID=<project id>
+FIREBASE_CLIENT_EMAIL=<client_email>
+FIREBASE_PRIVATE_KEY="<private_key, with its \n escapes>"
 AUTH_SECRET=<a random string of 32+ characters>
 ANTHROPIC_API_KEY=<your Anthropic key>
 ANTHROPIC_MODEL=claude-opus-5-5
 ENV
 
-# 4. Start
-npm run dev:all      # makes sure MongoDB is running, then starts the app on http://localhost:3000
-```
+# 3. Once per Firebase project: create the indexes, TTL policies and (deny-all) security rules
+npx firebase login
+npm run db:indexes
 
-`npm run db` alone (re)starts the MongoDB container if Docker stopped it. Your data lives in the
-`evermind-mongo` Docker volume, so a recreated container keeps everything.
+# 4. Start
+npm run dev            # http://localhost:3000, using the Firestore project above
+npm run dev:emulator   # or: a throw-away local Firestore emulator (data is gone when it stops)
+```
 
 Generate a secret with: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
 ### Connecting the AI (key stored encrypted in the database)
 
-The AI key is not kept in the code or in `.env.local`. It is saved, encrypted, in MongoDB:
+The AI key is not kept in the code or in `.env.local`. It is saved, encrypted, in Firestore:
 
 ```bash
 # once: the secret that encrypts the key (keep it safe; if it is lost, just save the key again)
@@ -57,7 +60,8 @@ report data, analytics, team, settings). AI features show a clear "AI is not con
 
 | Variable | Default | What it does |
 |---|---|---|
-| `MONGODB_URI` | `mongodb://localhost:27017/evermind` | Database connection |
+| `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` | — | The Firestore project and service account. Without the key, Google's default credentials are used (or the emulator when `FIRESTORE_EMULATOR_HOST` is set) |
+| `FIRESTORE_DATABASE_ID` | `(default)` | A named Firestore database instead of the default one |
 | `AUTH_SECRET` | — (required, 32+ chars) | Signs login cookies |
 | `AI_KEY_SECRET` | — | Encrypts the AI key saved with `scripts/set-ai-key.mjs` (32+ chars) |
 | `ANTHROPIC_API_KEY` | — | Turns on the AI when no key is saved in the database |
@@ -90,22 +94,53 @@ report data, analytics, team, settings). AI features show a clear "AI is not con
 npm test
 ```
 
-Starts a throw-away database and a fake Claude and Razorpay (no real key, no cost), runs 20 checks of sign-up, login, password reset,
-team roles, company isolation, chat, learning, reports, credits, subscriptions and credit packs, then cleans up. Needs ports 3200 and 9999 free.
+Starts the Firestore emulator (a throw-away database; never your real project) and a fake Claude and Razorpay (no real key, no cost),
+runs 20 checks of sign-up, login, password reset, team roles, company isolation, chat, learning, reports, credits, subscriptions and
+credit packs, then cleans up. Needs Java and ports 3200, 8085 and 9999 free. It can run while your own `npm run dev` is running.
 
 ## Deploy
 
-The app is a standard Next.js server plus MongoDB. A `Dockerfile` (small, non-root image) and a `docker-compose.yml`
-(app + MongoDB with a data volume) are included:
+### Firebase App Hosting (the live site)
+
+The app runs on Firebase App Hosting: backend `evermind` in `asia-southeast1`, the same region as Firestore. On App Hosting
+the server signs in to Firestore as the backend's own service account
+(`firebase-app-hosting-compute@…`, given the *Cloud Datastore User* role), so no key file is needed. Settings are in
+[`apphosting.yaml`](apphosting.yaml); secrets (`AUTH_SECRET`, `AI_KEY_SECRET`, `CRON_SECRET`) are in Cloud Secret Manager.
 
 ```bash
-cp apps/web/docker.env.example apps/web/docker.env   # then fill in AUTH_SECRET, ANTHROPIC_API_KEY, APP_URL, SMTP_URL
+npx firebase deploy --only apphosting:evermind     # upload, build on Google Cloud, release (5–10 minutes)
+```
+
+To change a secret: `printf %s "<value>" | npx firebase apphosting:secrets:set <secret-name> --data-file -`, then deploy again.
+`AI_KEY_SECRET` must stay the one the saved AI key was encrypted with.
+
+The server sleeps when idle, so the nightly learning job is started from outside: a daily Cloud Scheduler job sends
+`POST https://<site>/api/cron/learning` with the header `Authorization: Bearer <CRON_SECRET>`.
+
+### Docker / other servers
+
+The app is a standard Next.js server; the database is Cloud Firestore. A `Dockerfile` (small, non-root image) and a
+`docker-compose.yml` are included:
+
+```bash
+cp apps/web/docker.env.example apps/web/docker.env   # then fill in FIREBASE_*, AUTH_SECRET, ANTHROPIC_API_KEY, APP_URL, SMTP_URL
 docker compose up -d --build                         # app on http://localhost:3000
 ```
 
 `GET /api/health` answers `{"ok":true}` when the app can reach the database; use it for uptime monitoring.
-For real use, put it behind HTTPS (the app sends HSTS in production), use a managed MongoDB (e.g. Atlas) or back up the
-`mongo-data` volume, and keep the server running so the nightly learning job can run.
+For real use, put it behind HTTPS (the app sends HSTS in production), turn on Firestore backups (Firebase console →
+Firestore → Disaster recovery: scheduled backups or point-in-time recovery), and keep the server running so the nightly
+learning job can run.
+
+### Moving existing data from MongoDB
+
+`scripts/migrate-mongo-to-firestore.mjs` copies everything from `MONGODB_URI` into the Firestore project in `.env.local`,
+keeping every id (so sessions and links keep working). MongoDB is only read. Stop the app first, then:
+
+```bash
+npm run migrate:mongo -- --dry-run   # counts what would be copied
+npm run migrate:mongo                # copies (refuses if Firestore already has users; --overwrite to redo)
+```
 
 ## Check agent quality
 
@@ -119,7 +154,7 @@ Answers are saved to `scripts/eval-out/` so you can read them.
 ## Notes
 
 - The nightly learning job only runs while the server is running (it does not run on serverless hosts or a sleeping Codespace).
-- Login and sign-up are rate-limited (MongoDB-backed).
+- Login and sign-up are rate-limited (Firestore-backed).
 - Plans, prices and credit packs live in `src/lib/plans.ts`; model costs and credits in `src/lib/pricing.ts`. Payments go through
-  Razorpay when its keys are set (see `docs/ONBOARDING.md`, "Billing"); `node scripts/billing-admin.mjs report` compares revenue with AI cost.
+  Razorpay when its keys are set (see `docs/ONBOARDING.md`, "Billing"); `node --env-file=.env.local scripts/billing-admin.mjs report` compares revenue with AI cost.
 - The older C# prototype in `apps/api` is not used by this app.

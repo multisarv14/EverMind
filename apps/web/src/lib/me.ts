@@ -1,7 +1,7 @@
 import { can, type Action } from "@/constants/team";
 import type { Session } from "@/lib/auth";
 import { PACKS, PLANS } from "@/lib/plans";
-import { upgradeRequests } from "@/lib/db";
+import { findById, upgradeRequests } from "@/lib/db";
 import { spendStatus } from "@/lib/entitlements";
 import { billingConfigured } from "@/lib/billing";
 import { AGENT_IDS } from "@/constants/agentTraining";
@@ -14,7 +14,7 @@ export async function buildMe(session: Session) {
   const spend = await spendStatus(session.company);
   const { plan } = spend;
   const billing = session.company.billing;
-  const pending = await (await upgradeRequests()).findOne({ companyId: session.company._id });
+  const pending = await findById(upgradeRequests(), session.company._id);
 
   const actions: Action[] = ["chat", "createProject", "manageTeam", "manageBilling"];
 

@@ -1,4 +1,4 @@
-import { decisions } from "@/lib/db";
+import { decisions, findAll, insert } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { canEdit, clip, forbidden, json, readBody, unauthorized } from "@/lib/http";
 
@@ -6,11 +6,11 @@ export async function GET() {
   const session = await currentSession();
   if (!session) return unauthorized();
 
-  const list = await (await decisions()).find({ companyId: session.company._id }).sort({ updatedAt: -1 }).limit(300).toArray();
+  const list = await findAll(decisions().where("companyId", "==", session.company._id).orderBy("updatedAt", "desc").limit(300));
 
   return json({
     decisions: list.map((d) => ({
-      id: d._id.toString(),
+      id: d._id,
       title: d.title,
       context: d.context,
       options: d.options,
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   if (title.length < 3) return json({ error: "Please enter the decision to be made." }, 400);
 
   const now = new Date();
-  const created = await (await decisions()).insertOne({
+  const id = await insert(decisions(), {
     companyId: session.company._id,
     title,
     context: clip(body.context, 3000),
@@ -44,5 +44,5 @@ export async function POST(request: Request) {
     updatedAt: now,
   });
 
-  return json({ id: created.insertedId.toString() }, 201);
+  return json({ id }, 201);
 }
