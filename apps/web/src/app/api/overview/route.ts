@@ -1,4 +1,4 @@
-import { conversations, decisions, knowledge, projects, reports, tasks } from "@/lib/db";
+import { conversations, countOf, decisions, findAll, knowledge, projects, reports, tasks } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { json, unauthorized } from "@/lib/http";
 
@@ -8,16 +8,16 @@ export async function GET() {
 
   const companyId = session.company._id;
   const [projectCount, taskDocs, decisionCount, reportCount, knowledgeCount, chatCount] = await Promise.all([
-    (await projects()).countDocuments({ companyId }),
-    (await tasks()).find({ companyId }, { projection: { status: 1, projectId: 1 } }).toArray(),
-    (await decisions()).countDocuments({ companyId }),
-    (await reports()).countDocuments({ companyId }),
-    (await knowledge()).countDocuments({ companyId }),
-    (await conversations()).countDocuments({ userId: session.user._id }),
+    countOf(projects().where("companyId", "==", companyId)),
+    findAll(tasks().where("companyId", "==", companyId)),
+    countOf(decisions().where("companyId", "==", companyId)),
+    countOf(reports().where("companyId", "==", companyId)),
+    countOf(knowledge().where("companyId", "==", companyId)),
+    countOf(conversations().where("userId", "==", session.user._id)),
   ]);
 
   const open = taskDocs.filter((t) => t.status !== "done");
-  const activeProjects = new Set(open.filter((t) => t.projectId).map((t) => t.projectId!.toString()));
+  const activeProjects = new Set(open.filter((t) => t.projectId).map((t) => t.projectId));
 
   return json({
     projects: projectCount,

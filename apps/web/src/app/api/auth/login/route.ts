@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { users } from "@/lib/db";
+import { findFirst, users } from "@/lib/db";
 import { startSession } from "@/lib/auth";
 import { json, readBody } from "@/lib/http";
 import { clientIp, rateLimit, tooManyRequests } from "@/lib/ratelimit";
@@ -20,13 +20,13 @@ export async function POST(request: Request) {
   ]);
   if (!perAccount.ok || !perIp.ok) return tooManyRequests(Math.max(perAccount.retryAfter, perIp.retryAfter));
 
-  const user = await (await users()).findOne({ email });
+  const user = await findFirst(users().where("email", "==", email));
   const ok = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
 
   if (!user || !ok) {
     return json({ error: "Incorrect email or password." }, 401);
   }
 
-  await startSession(user._id.toString());
+  await startSession(user._id);
   return json({ user: { name: user.name, email: user.email } });
 }

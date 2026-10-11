@@ -16,9 +16,9 @@ export async function POST(request: Request) {
 
   if (plan !== "pro" && plan !== "business") return json({ error: "Please choose a plan." }, 400);
 
-  const col = await upgradeRequests();
-  await col.deleteMany({ companyId: session.company._id });
-  await col.insertOne({
+  // One request per company: a new one replaces the last.
+  await upgradeRequests().doc(session.company._id).set({
+    _id: session.company._id,
     companyId: session.company._id,
     userId: session.user._id,
     plan,

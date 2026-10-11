@@ -1,14 +1,14 @@
-import { test, after } from "node:test";
+import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
-import { MongoClient } from "mongodb";
+import { initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 import { BASE, addMember, mailsTo, newCompany, unique } from "./helpers.mjs";
 
 const SECRET = process.env.RAZORPAY_WEBHOOK_SECRET ?? "whsec-test";
 const MOCK = process.env.MOCK_URL ?? "http://localhost:9999";
-const mongo = new MongoClient(process.env.MONGODB_URI ?? "mongodb://localhost:27017/evermind_test");
-const db = () => mongo.db();
-after(() => mongo.close());
+// The Firestore emulator that scripts/test-api.sh started (FIRESTORE_EMULATOR_HOST).
+const db = getFirestore(initializeApp({ projectId: process.env.GCLOUD_PROJECT ?? "demo-evermind-test" }));
 
 /** Sends a webhook the way Razorpay does: raw JSON body, HMAC-SHA256 signature, event id. */
 async function webhook(event, { sign = true, id = `evt_${unique()}` } = {}) {
@@ -37,8 +37,8 @@ const subEvent = (event, sub, notes, payment) => ({
 });
 
 async function companyIdOf(client) {
-  await mongo.connect();
-  return (await db().collection("users").findOne({ email: client.email })).companyId;
+  const users = await db.collection("users").where("email", "==", client.email).limit(1).get();
+  return users.docs[0].data().companyId;
 }
 
 test("subscribe, renew, buy a pack, fail a payment and cancel", async () => {
@@ -102,7 +102,7 @@ test("subscribe, renew, buy a pack, fail a payment and cancel", async () => {
 
   // After the grace period the company is treated as Free.
   const companyId = await companyIdOf(owner);
-  await db().collection("companies").updateOne({ _id: companyId }, { $set: { "billing.graceUntil": new Date(Date.now() - 1000) } });
+  await db.collection("companies").doc(companyId).update({ "billing.graceUntil": new Date(Date.now() - 1000) });
   assert.equal((await owner.get("/api/auth/me")).data.plan.id, "free");
   assert.equal(await webhook(subEvent("subscription.charged", sub, notes, { ...pay1, id: `pay_${unique()}` })), 200);
   assert.equal((await owner.get("/api/auth/me")).data.plan.id, "pro", "a successful retry restores it");
@@ -145,11 +145,7 @@ test("the allowance is used first, then pack credits, then AI stops", async () =
   const month = new Date().toISOString().slice(0, 7);
 
   // Use up the whole monthly allowance.
-  await db().collection("usage").updateOne(
-    { _id: `${companyId}:${month}` },
-    { $set: { companyId, month, credits: me.usage.limit, tokens: 0 } },
-    { upsert: true }
-  );
+  await db.collection("usage").doc(`${companyId}:${month}`).set({ companyId, month, credits: me.usage.limit, tokens: 0 }, { merge: true });
   const blocked = await owner.chat("hello");
   assert.equal(blocked.status, 402);
   assert.equal(blocked.data.code, "limit_reached");
@@ -157,12 +153,13 @@ test("the allowance is used first, then pack credits, then AI stops", async () =
   assert.equal((await owner.post("/api/tasks", { title: "Non-AI work still works" })).status, 201);
 
   // Pack credits (here: an admin grant) keep AI going and are drawn down.
-  await db().collection("creditGrants").insertOne({ companyId, source: "admin", credits: 100, remaining: 100, createdAt: new Date(), expiresAt: new Date(Date.now() + 86_400_000) });
+  await db.collection("creditGrants").add({ companyId, source: "admin", credits: 100, remaining: 100, createdAt: new Date(), expiresAt: new Date(Date.now() + 86_400_000) });
   const ok = await owner.chat("hello again");
   assert.equal(ok.status, 200);
   assert.equal((await owner.get("/api/auth/me")).data.usage.packBalance, 100 - 66);
 
   // Expired credits don't count.
-  await db().collection("creditGrants").updateMany({ companyId }, { $set: { expiresAt: new Date(Date.now() - 1000) } });
+  const grants = await db.collection("creditGrants").where("companyId", "==", companyId).get();
+  await Promise.all(grants.docs.map((g) => g.ref.update({ expiresAt: new Date(Date.now() - 1000) })));
   assert.equal((await owner.chat("and again")).status, 402);
 });

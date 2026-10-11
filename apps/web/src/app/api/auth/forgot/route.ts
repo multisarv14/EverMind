@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { passwordResets, users } from "@/lib/db";
+import { deleteAll, findFirst, insert, passwordResets, users } from "@/lib/db";
 import { json, readBody } from "@/lib/http";
 import { clientIp, rateLimit, tooManyRequests } from "@/lib/ratelimit";
 import { appUrl, sendMail } from "@/lib/mail";
@@ -21,17 +21,13 @@ export async function POST(request: Request) {
   if (!perIp.ok) return tooManyRequests(perIp.retryAfter);
   if (!perEmail.ok) return ok;
 
-  const user = await (await users()).findOne({ email });
+  const user = await findFirst(users().where("email", "==", email));
   if (!user) return ok;
 
   const token = randomBytes(32).toString("base64url");
-  const col = await passwordResets();
-  await col.deleteMany({ userId: user._id });
-  await col.insertOne({
-    _id: createHash("sha256").update(token).digest("hex"),
-    userId: user._id,
-    expiresAt: new Date(Date.now() + HOUR * 1000),
-  });
+  const col = passwordResets();
+  await deleteAll(col.where("userId", "==", user._id));
+  await insert(col, { userId: user._id, expiresAt: new Date(Date.now() + HOUR * 1000) }, createHash("sha256").update(token).digest("hex"));
 
   await sendMail(resetEmail(email, user.name, `${appUrl(request)}/reset?token=${token}`));
   return ok;

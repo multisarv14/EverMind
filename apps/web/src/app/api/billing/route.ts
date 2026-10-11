@@ -1,4 +1,4 @@
-import { payments } from "@/lib/db";
+import { findAll, payments } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { can } from "@/constants/team";
 import { json, unauthorized } from "@/lib/http";
@@ -9,10 +9,10 @@ export async function GET() {
   if (!session) return unauthorized();
   if (!can(session.role, "manageBilling")) return json({ payments: [] });
 
-  const list = await (await payments()).find({ companyId: session.company._id }).sort({ createdAt: -1 }).limit(24).toArray();
+  const list = await findAll(payments().where("companyId", "==", session.company._id).orderBy("createdAt", "desc").limit(24));
   return json({
     payments: list.map((p) => ({
-      id: p._id.toString(),
+      id: p._id,
       kind: p.kind,
       plan: p.plan ?? null,
       packId: p.packId ?? null,

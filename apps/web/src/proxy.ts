@@ -12,8 +12,12 @@ export function proxy(request: NextRequest) {
   const hasSession = request.cookies.has("evermind_session");
 
   if (pathname.startsWith("/api/")) {
-    // The payment webhook has no session; it is checked by its signature instead.
-    const open = pathname.startsWith("/api/auth/") || pathname === "/api/health" || pathname === "/api/billing/webhook";
+    // The payment webhook and the scheduler call have no session; they are checked by a signature / secret instead.
+    const open =
+      pathname.startsWith("/api/auth/") ||
+      pathname === "/api/health" ||
+      pathname === "/api/billing/webhook" ||
+      pathname === "/api/cron/learning";
     if (open || hasSession) return NextResponse.next();
     return NextResponse.json({ error: "Please sign in." }, { status: 401 });
   }

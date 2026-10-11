@@ -15,6 +15,6 @@ export async function PATCH(request: Request) {
   const agents = AGENT_IDS.filter((id) => list.includes(id));
   if (agents.length === 0) return json({ error: "Choose at least one agent." }, 400);
 
-  await (await companies()).updateOne({ _id: session.company._id }, { $set: { agents } });
+  await companies().doc(session.company._id).update({ agents });
   return json({ agents });
 }

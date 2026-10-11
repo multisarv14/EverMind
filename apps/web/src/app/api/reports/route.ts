@@ -1,4 +1,4 @@
-import { reports } from "@/lib/db";
+import { findAll, insert, reports } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { ask, aiErrorResponse } from "@/lib/ai";
 import { buildReport } from "@/lib/report";
@@ -8,13 +8,9 @@ export async function GET() {
   const session = await currentSession();
   if (!session) return unauthorized();
 
-  const list = await (await reports())
-    .find({ companyId: session.company._id }, { projection: { title: 1, createdAt: 1 } })
-    .sort({ createdAt: -1 })
-    .limit(100)
-    .toArray();
+  const list = await findAll(reports().where("companyId", "==", session.company._id).orderBy("createdAt", "desc").limit(100));
 
-  return json({ reports: list.map((r) => ({ id: r._id.toString(), title: r.title, createdAt: r.createdAt })) });
+  return json({ reports: list.map((r) => ({ id: r._id, title: r.title, createdAt: r.createdAt })) });
 }
 
 export async function POST(request: Request) {
@@ -44,7 +40,7 @@ export async function POST(request: Request) {
   }
 
   const title = clip(body.title, 120) || `${session.company.name} — ${days}-day report (${new Date().toISOString().slice(0, 10)})`;
-  const created = await (await reports()).insertOne({
+  const id = await insert(reports(), {
     companyId: session.company._id,
     title,
     body: markdown,
@@ -52,5 +48,5 @@ export async function POST(request: Request) {
     createdAt: new Date(),
   });
 
-  return json({ id: created.insertedId.toString() }, 201);
+  return json({ id }, 201);
 }

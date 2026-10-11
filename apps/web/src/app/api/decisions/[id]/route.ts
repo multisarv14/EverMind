@@ -1,6 +1,6 @@
-import { decisions, type DecisionStatus } from "@/lib/db";
+import { decisions, findById, type DecisionStatus } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
-import { canEdit, clip, forbidden, json, oid, readBody, unauthorized } from "@/lib/http";
+import { canEdit, clip, forbidden, json, docId, readBody, unauthorized } from "@/lib/http";
 
 type Ctx = { params: Promise<{ id: string }> };
 const STATUSES: DecisionStatus[] = ["proposed", "approved", "rejected"];
@@ -10,7 +10,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
   if (!session) return unauthorized();
   if (!canEdit(session)) return forbidden();
 
-  const id = oid((await ctx.params).id);
+  const id = docId((await ctx.params).id);
   if (!id) return json({ error: "Not found." }, 404);
 
   const body = await readBody(request);
@@ -29,8 +29,8 @@ export async function PATCH(request: Request, ctx: Ctx) {
   if (body.context !== undefined) set.context = clip(body.context, 3000);
   if (body.options !== undefined) set.options = clip(body.options, 2000);
 
-  const result = await (await decisions()).updateOne({ _id: id, companyId: session.company._id }, { $set: set });
-  if (result.matchedCount === 0) return json({ error: "Not found." }, 404);
+  if (!(await findById(decisions(), id, { companyId: session.company._id }))) return json({ error: "Not found." }, 404);
+  await decisions().doc(id).update(set);
   return json({ ok: true });
 }
 
@@ -39,9 +39,9 @@ export async function DELETE(_request: Request, ctx: Ctx) {
   if (!session) return unauthorized();
   if (!canEdit(session)) return forbidden();
 
-  const id = oid((await ctx.params).id);
+  const id = docId((await ctx.params).id);
   if (!id) return json({ error: "Not found." }, 404);
 
-  await (await decisions()).deleteOne({ _id: id, companyId: session.company._id });
+  if (await findById(decisions(), id, { companyId: session.company._id })) await decisions().doc(id).delete();
   return json({ ok: true });
 }

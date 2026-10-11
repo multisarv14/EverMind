@@ -1,0 +1,31 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "emulators": {
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true
+  },
+  "apphosting": [
+    {
+      "backendId": "evermind",
+      "rootDir": ".",
+      "ignore": [
+        "node_modules",
+        ".git",
+        ".next",
+        ".next-test",
+        "firebase-debug.log",
+        "firestore-debug.log",
+        "tests",
+        "scripts/eval-out"
+      ]
+    }
+  ]
+}

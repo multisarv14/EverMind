@@ -20,6 +20,6 @@ export async function POST() {
     if (error instanceof BillingError) return json({ error: error.message }, error.status);
     throw error;
   }
-  await (await companies()).updateOne({ _id: session.company._id }, { $set: { "billing.cancelAtPeriodEnd": true } });
+  await companies().doc(session.company._id).update({ "billing.cancelAtPeriodEnd": true });
   return json({ ok: true });
 }

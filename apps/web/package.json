@@ -4,20 +4,21 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:emulator": "firebase emulators:exec --only firestore --project demo-evermind \"next dev\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db": "bash scripts/ensure-db.sh",
-    "dev:all": "bash scripts/ensure-db.sh && next dev",
-    "test": "bash scripts/test-api.sh"
+    "test": "bash scripts/test-api.sh",
+    "db:indexes": "firebase deploy --only firestore:indexes,firestore:rules",
+    "migrate:mongo": "node --env-file=.env.local scripts/migrate-mongo-to-firestore.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
     "bcryptjs": "^3.0.3",
+    "firebase-admin": "^13.10.0",
     "framer-motion": "^12.42.2",
     "jose": "^6.2.12",
     "lucide-react": "^1.23.0",
-    "mongodb": "^7.7.0",
     "next": "16.2.10",
     "nodemailer": "^10.0.13",
     "openai": "^6.49.0",
@@ -34,6 +35,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "firebase-tools": "^14.27.0",
+    "mongodb": "^7.7.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

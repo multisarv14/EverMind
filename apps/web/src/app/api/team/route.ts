@@ -1,4 +1,4 @@
-import { invites, users } from "@/lib/db";
+import { findAll, invites, users } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { can } from "@/constants/team";
 import { effectivePlan } from "@/lib/entitlements";
@@ -9,24 +9,21 @@ export async function GET() {
   if (!session) return unauthorized();
 
   const companyId = session.company._id;
-  const members = await (await users())
-    .find({ companyId }, { projection: { name: 1, email: 1, role: 1, createdAt: 1 } })
-    .sort({ createdAt: 1 })
-    .toArray();
+  const members = await findAll(users().where("companyId", "==", companyId).orderBy("createdAt"));
 
   const pending = can(session.role, "manageTeam")
-    ? await (await invites()).find({ companyId }).sort({ createdAt: -1 }).toArray()
+    ? await findAll(invites().where("companyId", "==", companyId).orderBy("createdAt", "desc"))
     : [];
 
   return json({
-    me: session.user._id.toString(),
+    me: session.user._id,
     members: members.map((m) => ({
-      id: m._id.toString(),
+      id: m._id,
       name: m.name,
       email: m.email,
       role: m.role ?? "owner",
     })),
-    invites: pending.map((i) => ({ id: i._id.toString(), email: i.email, role: i.role })),
+    invites: pending.map((i) => ({ id: i._id, email: i.email, role: i.role })),
     seats: { used: members.length + pending.length, max: effectivePlan(session.company).seats },
   });
 }

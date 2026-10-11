@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Connects EverMind to an AI provider. The key is tested, encrypted with AI_KEY_SECRET and saved in the
-// database (settings collection, _id "ai"); it never goes into the code or a file. The running app picks
+// database (settings collection, document "ai"); it never goes into the code or a file. The running app picks
 // up a change within 30 seconds, no restart needed. Run from apps/web:
 //
 //   node --env-file=.env.local scripts/set-ai-key.mjs set <groq|gemini|openrouter|anthropic> [model] [learning-model]
@@ -9,7 +9,7 @@
 //
 // "set" asks for the key without showing it. To pipe it instead: printf %s "$KEY" | node ... set groq
 import { createCipheriv, createHash, randomBytes } from "node:crypto";
-import { MongoClient } from "mongodb";
+import { connect } from "./firestore.mjs";
 
 const PROVIDERS = {
   groq: { baseUrl: "https://api.groq.com/openai/v1", model: "openai/gpt-oss-120b" },
@@ -96,30 +96,28 @@ async function set(db) {
   await testKey(provider, key, model);
   console.log("OK");
 
-  await db.collection("settings").replaceOne(
-    { _id: "ai" },
-    {
-      provider,
-      model,
-      ...(learningArg ? { learningModel: learningArg } : {}),
-      key: sealed,
-      keyHint: key.slice(-4),
-      updatedAt: new Date(),
-    },
-    { upsert: true }
-  );
+  await db.collection("settings").doc("ai").set({
+    provider,
+    model,
+    ...(learningArg ? { learningModel: learningArg } : {}),
+    key: sealed,
+    keyHint: key.slice(-4),
+    updatedAt: new Date(),
+  });
   console.log(`Saved. EverMind now uses ${provider} (${model}); the running app switches within 30 seconds.`);
 }
 
 async function show(db) {
-  const doc = await db.collection("settings").findOne({ _id: "ai" });
+  const doc = (await db.collection("settings").doc("ai").get()).data();
   if (!doc) return console.log("No key saved in the database." + (process.env.ANTHROPIC_API_KEY ? " Using ANTHROPIC_API_KEY from the environment." : ""));
-  console.log(`Provider: ${doc.provider}\nModel: ${doc.model}${doc.learningModel ? `\nLearning model: ${doc.learningModel}` : ""}\nKey: ...${doc.keyHint}\nSaved: ${doc.updatedAt.toISOString()}`);
+  console.log(`Provider: ${doc.provider}\nModel: ${doc.model}${doc.learningModel ? `\nLearning model: ${doc.learningModel}` : ""}\nKey: ...${doc.keyHint}\nSaved: ${doc.updatedAt.toDate().toISOString()}`);
 }
 
 async function remove(db) {
-  const { deletedCount } = await db.collection("settings").deleteOne({ _id: "ai" });
-  console.log(deletedCount ? "Removed the saved key." : "There was no saved key.");
+  const ref = db.collection("settings").doc("ai");
+  const existed = (await ref.get()).exists;
+  await ref.delete();
+  console.log(existed ? "Removed the saved key." : "There was no saved key.");
 }
 
 const commands = { set, show, remove };
@@ -128,13 +126,9 @@ if (!commands[cmd]) {
   process.exit(1);
 }
 
-const client = new MongoClient(process.env.MONGODB_URI ?? "mongodb://localhost:27017/evermind");
 try {
-  await client.connect();
-  await commands[cmd](client.db());
+  await commands[cmd](connect());
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
   process.exitCode = 1;
-} finally {
-  await client.close();
 }

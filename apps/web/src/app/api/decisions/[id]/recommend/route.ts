@@ -1,8 +1,8 @@
-import { decisions, knowledge } from "@/lib/db";
+import { decisions, findAll, findById, knowledge } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { ask, aiErrorResponse } from "@/lib/ai";
 import { systemPromptFor } from "@/lib/persona";
-import { canEdit, forbidden, json, oid, unauthorized } from "@/lib/http";
+import { canEdit, forbidden, json, docId, unauthorized } from "@/lib/http";
 
 // Asks EverMind (Claude) for a recommendation on a logged decision and stores it on the record.
 export async function POST(_request: Request, ctx: { params: Promise<{ id: string }> }) {
@@ -10,14 +10,13 @@ export async function POST(_request: Request, ctx: { params: Promise<{ id: strin
   if (!session) return unauthorized();
   if (!canEdit(session)) return forbidden();
 
-  const id = oid((await ctx.params).id);
+  const id = docId((await ctx.params).id);
   if (!id) return json({ error: "Not found." }, 404);
 
-  const col = await decisions();
-  const decision = await col.findOne({ _id: id, companyId: session.company._id });
+  const decision = await findById(decisions(), id, { companyId: session.company._id });
   if (!decision) return json({ error: "Not found." }, 404);
 
-  const kb = await (await knowledge()).find({ companyId: session.company._id }).sort({ updatedAt: -1 }).limit(20).toArray();
+  const kb = await findAll(knowledge().where("companyId", "==", session.company._id).orderBy("updatedAt", "desc").limit(20));
 
   try {
     const recommendation = await ask(session, {
@@ -35,7 +34,7 @@ export async function POST(_request: Request, ctx: { params: Promise<{ id: strin
       maxTokens: 1200,
     });
 
-    await col.updateOne({ _id: id }, { $set: { aiRecommendation: recommendation, updatedAt: new Date() } });
+    await decisions().doc(id).update({ aiRecommendation: recommendation, updatedAt: new Date() });
     return json({ recommendation });
   } catch (error) {
     return aiErrorResponse(error) ?? json({ error: "Something went wrong." }, 500);

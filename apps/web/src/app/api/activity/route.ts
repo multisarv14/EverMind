@@ -1,4 +1,4 @@
-import { conversations, decisions, knowledge, projects, reports, tasks } from "@/lib/db";
+import { conversations, decisions, findAll, knowledge, projects, reports, tasks } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { json, unauthorized } from "@/lib/http";
 
@@ -15,15 +15,15 @@ export async function GET() {
   if (!session) return unauthorized();
 
   const companyId = session.company._id;
-  const take = { limit: 5 };
+  const take = 5;
 
   const [chats, taskDocs, decisionDocs, reportDocs, knowledgeDocs, projectDocs] = await Promise.all([
-    (await conversations()).find({ userId: session.user._id }, { projection: { title: 1, updatedAt: 1 }, ...take }).sort({ updatedAt: -1 }).toArray(),
-    (await tasks()).find({ companyId }, take).sort({ updatedAt: -1 }).toArray(),
-    (await decisions()).find({ companyId }, take).sort({ updatedAt: -1 }).toArray(),
-    (await reports()).find({ companyId }, { projection: { title: 1, createdAt: 1 }, ...take }).sort({ createdAt: -1 }).toArray(),
-    (await knowledge()).find({ companyId }, { projection: { title: 1, updatedAt: 1 }, ...take }).sort({ updatedAt: -1 }).toArray(),
-    (await projects()).find({ companyId }, { projection: { name: 1, createdAt: 1 }, ...take }).sort({ createdAt: -1 }).toArray(),
+    findAll(conversations().where("userId", "==", session.user._id).orderBy("updatedAt", "desc").limit(take)),
+    findAll(tasks().where("companyId", "==", companyId).orderBy("updatedAt", "desc").limit(take)),
+    findAll(decisions().where("companyId", "==", companyId).orderBy("updatedAt", "desc").limit(take)),
+    findAll(reports().where("companyId", "==", companyId).orderBy("createdAt", "desc").limit(take)),
+    findAll(knowledge().where("companyId", "==", companyId).orderBy("updatedAt", "desc").limit(take)),
+    findAll(projects().where("companyId", "==", companyId).orderBy("createdAt", "desc").limit(take)),
   ]);
 
   const items: Item[] = [

@@ -1,6 +1,6 @@
-import { reports } from "@/lib/db";
+import { findById, reports } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
-import { canEdit, forbidden, json, oid, unauthorized } from "@/lib/http";
+import { canEdit, forbidden, json, docId, unauthorized } from "@/lib/http";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -8,13 +8,13 @@ export async function GET(_request: Request, ctx: Ctx) {
   const session = await currentSession();
   if (!session) return unauthorized();
 
-  const id = oid((await ctx.params).id);
+  const id = docId((await ctx.params).id);
   if (!id) return json({ error: "Not found." }, 404);
 
-  const report = await (await reports()).findOne({ _id: id, companyId: session.company._id });
+  const report = await findById(reports(), id, { companyId: session.company._id });
   if (!report) return json({ error: "Not found." }, 404);
 
-  return json({ id: report._id.toString(), title: report.title, body: report.body, createdAt: report.createdAt });
+  return json({ id: report._id, title: report.title, body: report.body, createdAt: report.createdAt });
 }
 
 export async function DELETE(_request: Request, ctx: Ctx) {
@@ -22,9 +22,9 @@ export async function DELETE(_request: Request, ctx: Ctx) {
   if (!session) return unauthorized();
   if (!canEdit(session)) return forbidden();
 
-  const id = oid((await ctx.params).id);
+  const id = docId((await ctx.params).id);
   if (!id) return json({ error: "Not found." }, 404);
 
-  await (await reports()).deleteOne({ _id: id, companyId: session.company._id });
+  if (await findById(reports(), id, { companyId: session.company._id })) await reports().doc(id).delete();
   return json({ ok: true });
 }

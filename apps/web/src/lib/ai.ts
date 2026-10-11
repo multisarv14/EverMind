@@ -1,6 +1,5 @@
-import type { ObjectId } from "mongodb";
 import type { Session } from "@/lib/auth";
-import type { CompanyRecord } from "@/lib/db";
+import type { CompanyRecord, Id } from "@/lib/db";
 import { recordSpend, spendBlock } from "@/lib/entitlements";
 import { rateLimit } from "@/lib/ratelimit";
 import { AI_NOT_CONFIGURED, aiConfig, complete, describeLlmError } from "@/lib/llm";
@@ -21,7 +20,7 @@ export interface AskOptions {
   background?: boolean;
   /** What the call is for, recorded with its cost (e.g. "tasks", "learning"). */
   feature?: string;
-  userId?: ObjectId;
+  userId?: Id;
 }
 
 export const ask = (session: Session, opts: AskOptions) => askCompany(session.company, { userId: session.user._id, ...opts });
@@ -30,7 +29,7 @@ export async function askCompany(company: CompanyRecord, opts: AskOptions): Prom
   const cfg = await aiConfig();
   if (!cfg) throw new AiError(AI_NOT_CONFIGURED, 503, "ai_not_configured");
 
-  const burst = await rateLimit(`ai:company:${company._id.toString()}`, 60, 600);
+  const burst = await rateLimit(`ai:company:${company._id}`, 60, 600);
   if (!burst.ok) {
     throw new AiError("EverMind is being asked a lot right now. Please wait a minute and try again.", 429, "rate_limited");
   }

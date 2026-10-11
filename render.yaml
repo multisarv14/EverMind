@@ -1,5 +1,5 @@
 # Render Blueprint for the EverMind web app (Render dashboard → New → Blueprint → this repo).
-# The database is MongoDB Atlas; the AI key is saved in it with apps/web/scripts/set-ai-key.mjs.
+# The database is Cloud Firestore (Firebase project in FIREBASE_*); the AI key is saved in it with apps/web/scripts/set-ai-key.mjs.
 services:
   - type: web
     name: evermind
@@ -13,8 +13,13 @@ services:
       paths:
         - apps/web/**
     envVars:
-      - key: MONGODB_URI
-        sync: false # asked for when the Blueprint is created
+      # From the Firebase service account key (Project settings → Service accounts). Asked for when the Blueprint is created.
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false # paste the key with its \n escapes, as in the JSON file
       - key: AUTH_SECRET
         generateValue: true
       - key: AI_KEY_SECRET

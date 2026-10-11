@@ -1,7 +1,7 @@
-import { tasks, projects } from "@/lib/db";
+import { findById, firestore, tasks, projects } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { ask, aiErrorResponse } from "@/lib/ai";
-import { canEdit, clip, forbidden, json, oid, readBody, unauthorized } from "@/lib/http";
+import { canEdit, clip, forbidden, json, docId, readBody, unauthorized } from "@/lib/http";
 
 const SCHEMA = {
   type: "object",
@@ -30,8 +30,8 @@ export async function POST(request: Request) {
   const goal = clip(body.goal, 1000);
   if (goal.length < 5) return json({ error: "Describe the goal you want broken down." }, 400);
 
-  const projectId = oid(body.projectId);
-  if (projectId && !(await (await projects()).findOne({ _id: projectId, companyId: session.company._id }))) {
+  const projectId = docId(body.projectId);
+  if (projectId && !(await findById(projects(), projectId, { companyId: session.company._id }))) {
     return json({ error: "Project not found." }, 404);
   }
 
@@ -53,17 +53,21 @@ export async function POST(request: Request) {
     if (titles.length === 0) return json({ error: "EverMind couldn't produce tasks. Try rephrasing the goal." }, 422);
 
     const now = new Date();
-    await (await tasks()).insertMany(
-      titles.map((title) => ({
+    const batch = firestore().batch();
+    for (const title of titles) {
+      const ref = tasks().doc();
+      batch.create(ref, {
+        _id: ref.id,
         companyId: session.company._id,
         title,
-        status: "todo" as const,
+        status: "todo",
         ...(projectId ? { projectId } : {}),
         createdBy: session.user._id,
         createdAt: now,
         updatedAt: now,
-      }))
-    );
+      });
+    }
+    await batch.commit();
 
     return json({ created: titles.length }, 201);
   } catch (error) {

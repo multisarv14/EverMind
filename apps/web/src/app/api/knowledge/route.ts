@@ -1,4 +1,4 @@
-import { knowledge } from "@/lib/db";
+import { countOf, findAll, insert, knowledge } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { canEdit, clip, forbidden, json, readBody, unauthorized } from "@/lib/http";
 
@@ -8,10 +8,10 @@ export async function GET() {
   const session = await currentSession();
   if (!session) return unauthorized();
 
-  const list = await (await knowledge()).find({ companyId: session.company._id }).sort({ updatedAt: -1 }).limit(MAX_ITEMS).toArray();
+  const list = await findAll(knowledge().where("companyId", "==", session.company._id).orderBy("updatedAt", "desc").limit(MAX_ITEMS));
 
   return json({
-    items: list.map((k) => ({ id: k._id.toString(), title: k.title, content: k.content, updatedAt: k.updatedAt })),
+    items: list.map((k) => ({ id: k._id, title: k.title, content: k.content, updatedAt: k.updatedAt })),
   });
 }
 
@@ -26,13 +26,13 @@ export async function POST(request: Request) {
   if (title.length < 2) return json({ error: "Please enter a title." }, 400);
   if (content.length < 2) return json({ error: "Please add some content." }, 400);
 
-  const col = await knowledge();
-  if ((await col.countDocuments({ companyId: session.company._id })) >= MAX_ITEMS) {
+  const col = knowledge();
+  if ((await countOf(col.where("companyId", "==", session.company._id))) >= MAX_ITEMS) {
     return json({ error: `You can keep up to ${MAX_ITEMS} knowledge items. Delete one to add another.` }, 400);
   }
 
   const now = new Date();
-  const created = await col.insertOne({
+  const id = await insert(col, {
     companyId: session.company._id,
     title,
     content,
@@ -40,5 +40,5 @@ export async function POST(request: Request) {
     createdAt: now,
     updatedAt: now,
   });
-  return json({ id: created.insertedId.toString() }, 201);
+  return json({ id }, 201);
 }

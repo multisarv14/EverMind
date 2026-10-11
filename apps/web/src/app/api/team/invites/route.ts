@@ -1,4 +1,4 @@
-import { invites, users } from "@/lib/db";
+import { countOf, emailKey, emails, findById, insert, inviteKey, invites, isDuplicate, users } from "@/lib/db";
 import { currentSession } from "@/lib/auth";
 import { can } from "@/constants/team";
 import { effectivePlan } from "@/lib/entitlements";
@@ -30,8 +30,8 @@ export async function POST(request: Request) {
 
   const companyId = session.company._id;
   const [members, pending] = await Promise.all([
-    (await users()).countDocuments({ companyId }),
-    (await invites()).countDocuments({ companyId }),
+    countOf(users().where("companyId", "==", companyId)),
+    countOf(invites().where("companyId", "==", companyId)),
   ]);
   const plan = effectivePlan(session.company);
   if (members + pending >= plan.seats) {
@@ -41,20 +41,24 @@ export async function POST(request: Request) {
     );
   }
 
-  if (await (await users()).findOne({ email })) {
+  if (await findById(emails(), emailKey(email))) {
     return json({ error: "That email already has an EverMind account." }, 409);
   }
 
   try {
-    await (await invites()).insertOne({
-      companyId,
-      email,
-      role: role as (typeof ASSIGNABLE)[number],
-      invitedBy: session.user._id,
-      createdAt: new Date(),
-    });
+    await insert(
+      invites(),
+      {
+        companyId,
+        email,
+        role: role as (typeof ASSIGNABLE)[number],
+        invitedBy: session.user._id,
+        createdAt: new Date(),
+      },
+      inviteKey(companyId, email)
+    );
   } catch (error) {
-    if ((error as { code?: number }).code === 11000) {
+    if (isDuplicate(error)) {
       return json({ error: "That email is already invited." }, 409);
     }
     throw error;
