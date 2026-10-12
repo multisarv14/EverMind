@@ -38,3 +38,12 @@ env:
   - variable: CRON_SECRET
     secret: evermind-cron-secret
     availability: [RUNTIME]
+
+  # Email for invites and password reset, e.g. smtps://user:app-password@smtp.gmail.com:465.
+  # Without it, no email is sent.
+  - variable: SMTP_URL
+    secret: evermind-smtp-url
+    availability: [RUNTIME]
+
+  - variable: MAIL_FROM
+    value: EverMind <no-reply@multisarv.com>
