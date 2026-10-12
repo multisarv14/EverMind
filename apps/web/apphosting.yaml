@@ -45,5 +45,8 @@ env:
     secret: evermind-smtp-url
     availability: [RUNTIME]
 
+  # Set to onboarding@resend.dev for Resend default domain.
+  # (Change back to no-reply@multisarv.com once domain DNS is verified in resend.com/domains)
   - variable: MAIL_FROM
-    value: EverMind <no-reply@multisarv.com>
+    value: EverMind <onboarding@resend.dev>
+
