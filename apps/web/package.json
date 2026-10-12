@@ -10,7 +10,8 @@
     "lint": "eslint",
     "test": "bash scripts/test-api.sh",
     "db:indexes": "firebase deploy --only firestore:indexes,firestore:rules",
-    "migrate:mongo": "node --env-file=.env.local scripts/migrate-mongo-to-firestore.mjs"
+    "migrate:mongo": "node --env-file=.env.local scripts/migrate-mongo-to-firestore.mjs",
+    "smtp:test": "node --env-file=.env.local scripts/test-smtp.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
