@@ -1,9 +1,8 @@
-import { createHash, randomBytes } from "node:crypto";
-import { deleteAll, findFirst, insert, passwordResets, users } from "@/lib/db";
+import { findFirst, users } from "@/lib/db";
 import { json, readBody } from "@/lib/http";
 import { clientIp, rateLimit, tooManyRequests } from "@/lib/ratelimit";
-import { appUrl, sendMail } from "@/lib/mail";
-import { resetEmail } from "@/lib/emails";
+import { appUrl } from "@/lib/mail";
+import { sendPasswordReset } from "@/lib/passwordReset";
 
 const HOUR = 3600;
 
@@ -19,25 +18,11 @@ export async function POST(request: Request) {
     rateLimit(`forgot:email:${email}`, 3, HOUR),
   ]);
   if (!perIp.ok) return tooManyRequests(perIp.retryAfter);
-  if (!perEmail.ok) {
-    console.warn(`[auth/forgot] Rate limit exceeded for "${email}" (limit: 3 per hour). Request ignored.`);
-    return ok;
-  }
+  if (!perEmail.ok) return ok;
 
   const user = await findFirst(users().where("email", "==", email));
-  if (!user) {
-    console.warn(`[auth/forgot] No account found for "${email}". Check registered email in database.`);
-    return ok;
-  }
+  if (!user) return ok;
 
-  const token = randomBytes(32).toString("base64url");
-  const col = passwordResets();
-  await deleteAll(col.where("userId", "==", user._id));
-  await insert(col, { userId: user._id, expiresAt: new Date(Date.now() + HOUR * 1000) }, createHash("sha256").update(token).digest("hex"));
-
-  const { sent } = await sendMail(resetEmail(email, user.name, `${appUrl(request)}/reset?token=${token}`));
-  if (!sent) {
-    console.error(`[auth/forgot] Email could not be sent to "${email}". See mail error above.`);
-  }
+  await sendPasswordReset(user, appUrl(request));
   return ok;
 }

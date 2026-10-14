@@ -14,6 +14,7 @@
     "test": "bash scripts/test-api.sh",
     "db:indexes": "firebase deploy --only firestore:indexes,firestore:rules",
     "migrate:mongo": "node --env-file=.env.local scripts/migrate-mongo-to-firestore.mjs",
+    "admin": "node --env-file=.env.local scripts/admin-users.mjs",
     "smtp:test": "node --env-file=.env.local scripts/test-smtp.mjs"
   },
   "dependencies": {

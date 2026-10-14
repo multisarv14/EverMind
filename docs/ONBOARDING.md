@@ -369,6 +369,12 @@ top-up.
 **Admin chores** (`node --env-file=.env.local scripts/billing-admin.mjs`, uses the `FIREBASE_*` settings):
 `report [YYYY-MM]` (revenue vs AI cost per company; compare with the Anthropic Console bill) ·
 `grant <owner-email> <credits> [note]` · `set-plan <owner-email> <plan>` (no payment).
+The same chores (and upgrade requests, users, password reset links) are in the admin panel at `/admin`.
+
+**Admin panel access** is a `platformAdmin: true` flag on a user's record, set only by `npm run admin -- ...`
+(`scripts/admin-users.mjs`, uses the `FIREBASE_*` settings): `create <email> <name>` (new admin login with its own
+workspace; prints a one-time password) · `promote <email>` · `revoke <email>` · `list`. Admins are signed in like any
+user and land on `/admin`; everyone else gets a 404 there.
 
 ### 6.9 Reports and analytics
 - `POST /api/reports` builds a Markdown report from projects, tasks, decisions, chat counts, team size and token use

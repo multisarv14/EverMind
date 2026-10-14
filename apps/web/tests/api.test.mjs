@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { Client, addMember, mailsTo, newCompany, unique } from "./helpers.mjs";
 
 test("security headers are present", async () => {
@@ -259,3 +260,79 @@ test("plan: without online payment an upgrade can still be requested", async () 
   assert.equal((await c.post("/api/plan/upgrade", { plan: "pro", note: "please" })).status, 201);
   assert.equal((await c.get("/api/auth/me")).data.upgradeRequested, true);
 });
+
+test("platform admin panel: only flagged users get in, and admin actions work", async () => {
+  const owner = await newCompany("Cust");
+  await owner.post("/api/plan/upgrade", { plan: "pro", note: "please" });
+
+  // Ordinary owners can't see the admin API or page.
+  assert.equal((await owner.get("/api/admin/overview")).status, 404);
+  assert.equal((await owner.get("/api/admin/users")).status, 404);
+  assert.equal((await owner.call("/admin", { raw: true })).status, 404);
+  assert.equal((await new Client().get("/api/admin/overview")).status, 401);
+
+  // An admin login is made with the script, which stores it in Firestore like any user.
+  const adminEmail = `admin${unique()}@test.dev`;
+  const out = adminScript("create", adminEmail, "Platform", "Admin");
+  const password = out.match(/One-time password: (\S+)/)?.[1];
+  assert.ok(password);
+  assert.match(adminScript("list"), new RegExp(adminEmail));
+  const admin = new Client();
+  const login = await admin.post("/api/auth/login", { email: adminEmail, password });
+  assert.equal(login.status, 200);
+  assert.equal(login.data.admin, true);
+  assert.equal((await owner.post("/api/auth/login", { email: owner.email, password: owner.password })).data.admin, false);
+
+  const overview = (await admin.get("/api/admin/overview")).data;
+  assert.ok(overview.companies >= 2);
+  assert.ok(overview.upgradeRequests >= 1);
+
+  // Users list never carries password hashes.
+  const users = (await admin.get("/api/admin/users")).data.users;
+  const customer = users.find((u) => u.email === owner.email);
+  assert.ok(customer);
+  assert.equal("passwordHash" in customer, false);
+  assert.ok(users.find((u) => u.email === adminEmail).platformAdmin);
+  assert.equal(customer.platformAdmin, false);
+
+  // Approving the upgrade request moves the plan and closes the request.
+  const requests = (await admin.get("/api/admin/upgrade-requests")).data.requests;
+  const req = requests.find((r) => r.companyId === customer.companyId);
+  assert.equal(req.plan, "pro");
+  assert.equal((await admin.patch(`/api/admin/companies/${req.companyId}`, { plan: "bogus" })).status, 400);
+  assert.equal((await admin.patch(`/api/admin/companies/${req.companyId}`, { plan: "pro" })).status, 200);
+  assert.equal((await owner.get("/api/auth/me")).data.plan.id, "pro");
+  assert.equal((await owner.get("/api/auth/me")).data.upgradeRequested, false);
+
+  // Granted credits show up as the company's extra balance.
+  assert.equal((await admin.post(`/api/admin/companies/${req.companyId}/credits`, { credits: 0 })).status, 400);
+  assert.equal((await admin.post(`/api/admin/companies/${req.companyId}/credits`, { credits: 5000, note: "pilot" })).status, 201);
+  assert.equal((await owner.get("/api/auth/me")).data.usage.packBalance, 5000);
+  const row = (await admin.get("/api/admin/companies")).data.companies.find((c) => c.id === req.companyId);
+  assert.equal(row.plan, "pro");
+  assert.equal(row.packBalance, 5000);
+
+  // A reset link from the admin works like the emailed one.
+  const reset = await admin.post(`/api/admin/users/${customer.id}/reset`);
+  assert.equal(reset.status, 201);
+  assert.equal(mailsTo(owner.email).length, 1);
+  const token = new URL(reset.data.link).searchParams.get("token");
+  assert.equal((await new Client().post("/api/auth/reset", { token, password: "a-new-password-456" })).status, 200);
+  assert.equal((await new Client().post("/api/auth/login", { email: owner.email, password: "a-new-password-456" })).status, 200);
+
+  const report = await admin.get("/api/admin/report?month=2000-01");
+  assert.equal(report.status, 200);
+  assert.deepEqual(report.data.rows, []);
+
+  // Promote and revoke take effect on the next request. (The reset above signed the owner out.)
+  assert.equal((await owner.post("/api/auth/login", { email: owner.email, password: "a-new-password-456" })).status, 200);
+  adminScript("promote", owner.email);
+  assert.equal((await owner.get("/api/admin/overview")).status, 200);
+  adminScript("revoke", owner.email);
+  assert.equal((await owner.get("/api/admin/overview")).status, 404);
+});
+
+/** Runs scripts/admin-users.mjs against the same (emulator) database as the server. */
+function adminScript(...args) {
+  return execFileSync(process.execPath, ["scripts/admin-users.mjs", ...args], { encoding: "utf8" });
+}

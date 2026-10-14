@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { findFirst, users } from "@/lib/db";
 import { startSession } from "@/lib/auth";
+import { isPlatformAdmin } from "@/lib/admin";
 import { json, readBody } from "@/lib/http";
 import { clientIp, rateLimit, tooManyRequests } from "@/lib/ratelimit";
 
@@ -28,5 +29,5 @@ export async function POST(request: Request) {
   }
 
   await startSession(user._id);
-  return json({ user: { name: user.name, email: user.email } });
+  return json({ user: { name: user.name, email: user.email }, admin: isPlatformAdmin(user) });
 }

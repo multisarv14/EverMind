@@ -26,6 +26,8 @@ export interface UserDoc {
   companyName?: string;
   companyId?: Id;
   role?: Role;
+  /** A member of the EverMind team: can open the admin panel (/admin). Set only by scripts/admin-users.mjs, never by the app. */
+  platformAdmin?: boolean;
   email: string;
   passwordHash: string;
   createdAt: Date;

@@ -6,7 +6,7 @@ import { Menu, X } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 
 /** The signed-in frame: a fixed sidebar on large screens, a slide-in menu on phones and tablets. */
-export default function AppShell({ user, children }: { user: { name: string; subtitle: string }; children: ReactNode }) {
+export default function AppShell({ user, children }: { user: { name: string; subtitle: string; admin?: boolean }; children: ReactNode }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {

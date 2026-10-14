@@ -17,6 +17,7 @@ import {
   BarChart3,
   FileText,
   Settings,
+  ShieldCheck,
 } from "lucide-react";
 
 const menu = [
@@ -42,8 +43,9 @@ const states = [
   { label: "Learning", dot: "bg-violet-500" },
 ];
 
-export default function Sidebar({ user, onNavigate }: { user: { name: string; subtitle: string }; onNavigate?: () => void }) {
+export default function Sidebar({ user, onNavigate }: { user: { name: string; subtitle: string; admin?: boolean }; onNavigate?: () => void }) {
   const pathname = usePathname();
+  const items = user.admin ? [...menu, { icon: ShieldCheck, label: "Admin", href: "/admin" }] : menu;
 
   return (
     <aside className="flex h-screen w-[265px] shrink-0 flex-col border-r border-white/[0.07] bg-[var(--panel-bg)] px-4 py-5">
@@ -58,7 +60,7 @@ export default function Sidebar({ user, onNavigate }: { user: { name: string; su
       <div className="mt-5 border-t border-white/[0.07]" />
 
       <nav className="mt-3 min-h-0 flex-1 space-y-0.5 overflow-y-auto">
-        {menu.map(({ icon: Icon, label, href }) => {
+        {items.map(({ icon: Icon, label, href }) => {
           const active = pathname.startsWith(href);
 
           return (

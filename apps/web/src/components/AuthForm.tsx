@@ -55,7 +55,7 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
         return;
       }
 
-      router.replace(signup && !data.joinedTeam ? "/onboarding" : "/dashboard");
+      router.replace(signup && !data.joinedTeam ? "/onboarding" : data.admin ? "/admin" : "/dashboard");
       router.refresh();
     } catch {
       setError("Can't reach the server. Please try again.");
