@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -21,7 +21,7 @@ export const publicUrl = () => process.env.APP_URL ?? "http://localhost:3000";
  * (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE).
  * Safely parses passwords containing special characters (e.g. #, ?, @).
  */
-export function getMailTransport(): nodemailer.Transporter | null {
+export function getMailTransport(): Transporter | null {
   const commonTimeouts = {
     connectionTimeout: 10_000,
     greetingTimeout: 10_000,

@@ -21,6 +21,7 @@
         ".git",
         ".next",
         ".next-test",
+        ".env*",
         "firebase-debug.log",
         "firestore-debug.log",
         "tests",
