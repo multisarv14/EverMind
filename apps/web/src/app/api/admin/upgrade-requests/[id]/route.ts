@@ -5,8 +5,8 @@ import { docId, json } from "@/lib/http";
 type Ctx = { params: Promise<{ id: string }> };
 
 /** Dismisses a request without changing the plan. (Approving is a plan change: PATCH /api/admin/companies/[id].) */
-export async function DELETE(_request: Request, ctx: Ctx) {
-  const { error } = await adminSession();
+export async function DELETE(req: Request, ctx: Ctx) {
+  const { error } = await adminSession(req, "upgrades");
   if (error) return error;
 
   const request = await findById(upgradeRequests(), docId((await ctx.params).id));

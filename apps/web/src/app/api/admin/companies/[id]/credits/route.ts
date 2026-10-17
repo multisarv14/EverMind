@@ -8,7 +8,7 @@ const MAX_GRANT = 100_000_000;
 
 /** Gives a company free credits, valid for 12 months and used after its monthly allowance. */
 export async function POST(request: Request, ctx: Ctx) {
-  const { session, error } = await adminSession();
+  const { actor, error } = await adminSession(request, "companies");
   if (error) return error;
 
   const company = await findById(companies(), docId((await ctx.params).id));
@@ -25,7 +25,7 @@ export async function POST(request: Request, ctx: Ctx) {
     source: "admin",
     credits,
     remaining: credits,
-    note: [note, `by ${session.user.email}`].filter(Boolean).join(" · "),
+    note: [note, `by ${actor.email}`].filter(Boolean).join(" · "),
     createdAt: now,
     expiresAt: new Date(now.getTime() + 365 * 86_400_000),
   });

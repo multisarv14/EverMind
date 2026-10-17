@@ -2,8 +2,8 @@ import { adminSession } from "@/lib/admin";
 import { companies, findAll, findById, upgradeRequests, users } from "@/lib/db";
 import { json } from "@/lib/http";
 
-export async function GET() {
-  const { error } = await adminSession();
+export async function GET(request: Request) {
+  const { error } = await adminSession(request, "upgrades");
   if (error) return error;
 
   const requests = await findAll(upgradeRequests().orderBy("createdAt", "desc"));

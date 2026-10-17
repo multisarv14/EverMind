@@ -7,7 +7,8 @@ type Ctx = { params: Promise<{ id: string }> };
 
 /** Changes a company's plan by hand (no payment), and closes its upgrade request. */
 export async function PATCH(request: Request, ctx: Ctx) {
-  const { error } = await adminSession();
+  // Approving an upgrade request is this plan change too.
+  const { error } = await adminSession(request, "companies", "upgrades");
   if (error) return error;
 
   const company = await findById(companies(), docId((await ctx.params).id));

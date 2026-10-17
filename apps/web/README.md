@@ -69,6 +69,7 @@ report data, analytics, team, settings). AI features show a clear "AI is not con
 | `ANTHROPIC_LEARNING_MODEL` | same as above | Model for the nightly learning job |
 | `FREE_MONTHLY_CREDITS` | `50000` | AI credit allowance per company per month on the Free plan (`FREE_MONTHLY_TOKENS` still works) |
 | `FREE_SEATS` | `3` | Team members allowed on the Free plan |
+| `PANEL_ORIGINS` | `https://core.multisarv.com,http://localhost:5173` | Sites of the MultiSarv admin panel allowed to call `/api/admin/*` from the browser (CORS). The panel signs requests with a Firebase ID token that MultiSarv core issues for this project; its `menus` claim decides which sections it can open (`src/lib/admin.ts`) |
 | `APP_URL` | the request's address | Public address of the site, used for links in emails and in sitemap/robots |
 | `SMTP_URL` | — | Turns on real emails (invitations, password reset), e.g. `smtp://user:pass@smtp.example.com:587`. Without it nothing is sent; in development the email is printed in the server console |
 | `MAIL_FROM` | `EverMind <no-reply@localhost>` | The "from" address of emails |

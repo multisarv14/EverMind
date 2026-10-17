@@ -3,7 +3,7 @@ import { monthOf, monthReport } from "@/lib/adminData";
 import { json } from "@/lib/http";
 
 export async function GET(request: Request) {
-  const { error } = await adminSession();
+  const { error } = await adminSession(request, "dashboard");
   if (error) return error;
 
   return json(await monthReport(monthOf(new URL(request.url).searchParams.get("month"))));

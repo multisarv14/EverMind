@@ -4,8 +4,8 @@ import { json } from "@/lib/http";
 
 const LIMIT = 1000;
 
-export async function GET() {
-  const { error } = await adminSession();
+export async function GET(request: Request) {
+  const { error } = await adminSession(request, "users");
   if (error) return error;
 
   const [people, list] = await Promise.all([findAll(users().orderBy("createdAt", "desc").limit(LIMIT)), findAll(companies())]);

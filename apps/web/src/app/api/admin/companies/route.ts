@@ -6,8 +6,8 @@ import { creditsUsed, packBalance } from "@/lib/usage";
 
 const LIMIT = 500;
 
-export async function GET() {
-  const { error } = await adminSession();
+export async function GET(request: Request) {
+  const { error } = await adminSession(request, "companies");
   if (error) return error;
 
   const [list, people, requests] = await Promise.all([

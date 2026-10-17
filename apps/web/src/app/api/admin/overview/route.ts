@@ -3,8 +3,8 @@ import { monthOf, monthReport } from "@/lib/adminData";
 import { companies, countOf, upgradeRequests, users } from "@/lib/db";
 import { json } from "@/lib/http";
 
-export async function GET() {
-  const { error } = await adminSession();
+export async function GET(request: Request) {
+  const { error } = await adminSession(request, "dashboard");
   if (error) return error;
 
   const [companyCount, userCount, pro, business, requests, report] = await Promise.all([

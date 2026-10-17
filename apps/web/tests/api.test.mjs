@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { Client, addMember, mailsTo, newCompany, unique } from "./helpers.mjs";
+import { BASE, Client, addMember, mailsTo, newCompany, unique } from "./helpers.mjs";
 
 test("security headers are present", async () => {
   const c = new Client();
@@ -331,6 +331,100 @@ test("platform admin panel: only flagged users get in, and admin actions work", 
   adminScript("revoke", owner.email);
   assert.equal((await owner.get("/api/admin/overview")).status, 404);
 });
+
+test("MultiSarv panel: a core-issued token opens only the sections it was given", async () => {
+  const owner = await newCompany("Panel");
+  const ownerEmail = owner.email;
+  const call = (path, token, { method = "GET", body, origin } = {}) =>
+    fetch(BASE + path, {
+      method,
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(body ? { "Content-Type": "application/json" } : {}),
+        ...(origin ? { Origin: origin } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+  // The browser's preflight: only the panel's own sites get CORS headers.
+  const ok = await call("/api/admin/overview", null, { method: "OPTIONS", origin: "http://localhost:5173" });
+  assert.equal(ok.status, 204);
+  assert.equal(ok.headers.get("access-control-allow-origin"), "http://localhost:5173");
+  assert.match(ok.headers.get("access-control-allow-headers"), /Authorization/);
+  assert.equal((await call("/api/admin/overview", null, { method: "OPTIONS", origin: "https://evil.example" })).status, 403);
+
+  // Garbage tokens and tokens without the panel claims are refused.
+  assert.equal((await call("/api/admin/overview", "not-a-token")).status, 401);
+  assert.equal((await call("/api/admin/overview", await panelToken({ admin: true, menus: ["dashboard"] }))).status, 403);
+  assert.equal((await call("/api/admin/overview", await panelToken({ panel: true, menus: ["dashboard"] }))).status, 403);
+
+  // Each section needs its own menu.
+  const dash = await panelToken({ panel: true, admin: true, menus: ["dashboard"], adminEmail: "ops@multisarv.test" });
+  const overview = await call("/api/admin/overview", dash, { origin: "https://core.multisarv.com" });
+  assert.equal(overview.status, 200);
+  assert.equal(overview.headers.get("access-control-allow-origin"), "https://core.multisarv.com");
+  assert.ok((await overview.json()).companies >= 1);
+  assert.equal((await call("/api/admin/users", dash)).status, 403);
+  assert.equal((await call("/api/admin/companies", dash)).status, 403);
+
+  const people = await panelToken({ panel: true, admin: true, menus: ["users"] });
+  const users = (await (await call("/api/admin/users", people)).json()).users;
+  const customer = users.find((u) => u.email === ownerEmail);
+  assert.ok(customer);
+  assert.equal("passwordHash" in customer, false);
+
+  // Reset links work for customers, but never for platform admins (that would hand over their account).
+  assert.equal((await call(`/api/admin/users/${customer.id}/reset`, people, { method: "POST" })).status, 201);
+  const adminEmail = `padmin${unique()}@test.dev`;
+  execFileSync(process.execPath, ["scripts/admin-users.mjs", "create", adminEmail, "Platform", "Admin"], { encoding: "utf8" });
+  const platformAdmin = (await (await call("/api/admin/users", people)).json()).users.find((u) => u.email === adminEmail);
+  assert.ok(platformAdmin.platformAdmin);
+  assert.equal((await call(`/api/admin/users/${platformAdmin.id}/reset`, people, { method: "POST" })).status, 403);
+  assert.equal(mailsTo(adminEmail).length, 0);
+
+  // Approving an upgrade (a plan change) works from either Companies or Upgrade requests.
+  await owner.post("/api/plan/upgrade", { plan: "pro", note: "please" });
+  const upgrades = await panelToken({ panel: true, admin: true, menus: ["upgrades"] });
+  const requests = (await (await call("/api/admin/upgrade-requests", upgrades)).json()).requests;
+  assert.ok(requests.find((r) => r.companyId === customer.companyId));
+  const approve = await call(`/api/admin/companies/${customer.companyId}`, upgrades, { method: "PATCH", body: { plan: "pro" } });
+  assert.equal(approve.status, 200);
+  assert.equal((await owner.get("/api/auth/me")).data.plan.id, "pro");
+  // …but credits need Companies.
+  assert.equal((await call(`/api/admin/companies/${customer.companyId}/credits`, upgrades, { method: "POST", body: { credits: 10 } })).status, 403);
+
+  // "*" (super admin) opens everything; credit grants are signed with the panel admin's email.
+  const all = await panelToken({ panel: true, admin: true, menus: ["*"], adminEmail: "boss@multisarv.test" });
+  const grant = await call(`/api/admin/companies/${customer.companyId}/credits`, all, { method: "POST", body: { credits: 10, note: "panel" } });
+  assert.equal(grant.status, 201);
+  assert.equal((await owner.get("/api/auth/me")).data.usage.packBalance, 10);
+});
+
+/**
+ * Signs in the way the MultiSarv panel does: core makes a custom token with the admin's claims, and
+ * Firebase Auth (here the emulator, which accepts unsigned custom tokens) swaps it for an ID token.
+ */
+async function panelToken(claims) {
+  const project = process.env.GCLOUD_PROJECT ?? "demo-evermind-test";
+  const now = Math.floor(Date.now() / 1000);
+  const part = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+  const custom = `${part({ alg: "none", typ: "JWT" })}.${part({
+    iss: `core@${project}.iam.gserviceaccount.com`,
+    sub: `core@${project}.iam.gserviceaccount.com`,
+    aud: "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit",
+    uid: `ms_${unique()}`,
+    iat: now,
+    exp: now + 3600,
+    claims,
+  })}.`;
+  const res = await fetch(
+    `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=fake`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: custom, returnSecureToken: true }) }
+  );
+  const data = await res.json();
+  assert.ok(data.idToken, JSON.stringify(data));
+  return data.idToken;
+}
 
 /** Runs scripts/admin-users.mjs against the same (emulator) database as the server. */
 function adminScript(...args) {

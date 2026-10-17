@@ -1,4 +1,4 @@
-import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
 import {
   FieldPath,
   getFirestore,
@@ -291,19 +291,23 @@ const globalForFirestore = globalThis as unknown as { firestore?: Firestore };
  * With FIREBASE_PRIVATE_KEY set, signs in as that service account. Otherwise uses the default Google
  * credentials, or the emulator when FIRESTORE_EMULATOR_HOST is set (npm test, npm run dev:emulator).
  */
-export function firestore(): Firestore {
-  if (globalForFirestore.firestore) return globalForFirestore.firestore;
-
+export function firebaseApp(): App {
   const projectId = process.env.FIREBASE_PROJECT_ID || process.env.GCLOUD_PROJECT || "demo-evermind";
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-  const app =
+  return (
     getApps()[0] ??
     initializeApp(
       privateKey && !process.env.FIRESTORE_EMULATOR_HOST
         ? { projectId, credential: cert({ projectId, clientEmail: process.env.FIREBASE_CLIENT_EMAIL, privateKey }) }
         : { projectId }
-    );
+    )
+  );
+}
 
+export function firestore(): Firestore {
+  if (globalForFirestore.firestore) return globalForFirestore.firestore;
+
+  const app = firebaseApp();
   const db = process.env.FIRESTORE_DATABASE_ID ? getFirestore(app, process.env.FIRESTORE_DATABASE_ID) : getFirestore(app);
   db.settings({ ignoreUndefinedProperties: true });
   globalForFirestore.firestore = db;

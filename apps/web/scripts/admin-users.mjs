@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Manages EverMind team accounts that can open the admin panel (/admin). Uses the Firestore project in .env.local.
-// An admin is an ordinary user (with its own workspace, like an owner) whose record has platformAdmin: true.
+// An admin is an ordinary user with role "admin" in its own workspace, whose record has platformAdmin: true.
+// The flag is what opens the panel; promote/revoke leave the user's role alone.
 //
 //   npm run admin -- create <email> <name...>   new admin login; prints a one-time password to change after signing in
 //   npm run admin -- promote <email>            make an existing user an admin
@@ -39,7 +40,7 @@ async function create(db, email, name) {
     email,
     passwordHash: await bcrypt.hash(password, 12),
     companyId: company.id,
-    role: "owner",
+    role: "admin",
     platformAdmin: true,
     createdAt: now,
   });

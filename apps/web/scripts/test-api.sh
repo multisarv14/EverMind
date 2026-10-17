@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs the API test suite against the Firestore emulator (a throw-away database) and a fake Claude.
 #   npm test
-# Needs Java (for the emulator) and ports 3200 / 8085 / 9999 free.
+# Needs Java (for the emulators) and ports 3200 / 8085 / 9099 / 9999 free.
 set -u
 cd "$(dirname "$0")/.."
 
@@ -14,9 +14,12 @@ export FIRESTORE_EMULATOR_HOST="127.0.0.1:$DB_PORT"
 export GCLOUD_PROJECT="demo-evermind-test"
 # Never let the tests reach the real project, whatever .env.local says (Next.js doesn't override variables that are set).
 export FIREBASE_PROJECT_ID="$GCLOUD_PROJECT" FIREBASE_PRIVATE_KEY="" FIREBASE_CLIENT_EMAIL="" FIRESTORE_DATABASE_ID=""
+# MultiSarv panel tokens come from the Auth emulator, as they do from Firebase Auth in production.
+AUTH_PORT=9099
+export FIREBASE_AUTH_EMULATOR_HOST="127.0.0.1:$AUTH_PORT"
 
 # A leftover server on these ports would silently answer instead of the one we start.
-for p in $PORT $DB_PORT 9999; do
+for p in $PORT $DB_PORT $AUTH_PORT 9999; do
   if (echo >"/dev/tcp/127.0.0.1/$p") 2>/dev/null; then
     echo "Port $p is already in use. Stop whatever is using it and run the tests again."
     exit 1
@@ -26,7 +29,7 @@ done
 # Job control puts each background job in its own process group, so cleanup can stop the whole tree.
 set -m
 
-npx firebase emulators:start --only firestore --project "$GCLOUD_PROJECT" --config firebase.test.json >"$DB_LOG" 2>&1 &
+npx firebase emulators:start --only firestore,auth --project "$GCLOUD_PROJECT" --config firebase.test.json >"$DB_LOG" 2>&1 &
 DB=$!
 
 node tests/mock-claude.mjs >/dev/null 2>&1 &
@@ -53,6 +56,11 @@ for _ in $(seq 1 60); do
   sleep 1
 done
 curl -s -o /dev/null "http://127.0.0.1:$DB_PORT" || { echo "The Firestore emulator did not start. Log:"; tail -20 "$DB_LOG"; exit 1; }
+for _ in $(seq 1 30); do
+  curl -s -o /dev/null "http://127.0.0.1:$AUTH_PORT" && break
+  sleep 1
+done
+curl -s -o /dev/null "http://127.0.0.1:$AUTH_PORT" || { echo "The Auth emulator did not start. Log:"; tail -20 "$DB_LOG"; exit 1; }
 
 for _ in $(seq 1 90); do
   [ "$(curl -s -o /dev/null -w '%{http_code}' localhost:$PORT/api/health)" = "200" ] && break
